@@ -1,0 +1,303 @@
+{
+  "version": "fitness-knowledge-1",
+  "generated_on": "2026-09-12",
+  "scope": "Brief educational muscle-function summaries; not individualized medical advice.",
+  "provenance": {
+    "method": "Original concise source-supported summaries prepared with AI assistance; no copied textbook passages",
+    "review_status": "pending_qualified_review",
+    "training_use": "Excluded from neural training. Model uses only user-supplied exercise names and source target labels.",
+    "attribution": "Anatomy references: OpenStax, Anatomy and Physiology 2e, Betts et al. Access for free at https://openstax.org/books/anatomy-and-physiology-2e/pages/1-introduction"
+  },
+  "sources": {
+    "upper": {
+      "title": "OpenStax Anatomy and Physiology 2e, 11.5",
+      "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/11-5-muscles-of-the-pectoral-girdle-and-upper-limbs"
+    },
+    "lower": {
+      "title": "OpenStax Anatomy and Physiology 2e, 11.6",
+      "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/11-6-appendicular-muscles-of-the-pelvic-girdle-and-lower-limbs"
+    },
+    "trunk": {
+      "title": "OpenStax Anatomy and Physiology 2e, 11.4",
+      "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/11-4-axial-muscles-of-the-abdominal-wall-and-thorax"
+    },
+    "back": {
+      "title": "OpenStax Anatomy and Physiology 2e, 11.3",
+      "url": "https://openstax.org/books/anatomy-and-physiology-2e/pages/11-3-axial-muscles-of-the-head-neck-and-back"
+    },
+    "order": {
+      "title": "ACSM 2026 resistance training position stand",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12965823/"
+    },
+    "priority": {
+      "title": "Simao et al. 2010: Influence of Exercise Order",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3737971/"
+    },
+    "dataset": {
+      "title": "User-supplied exercises-dataset snapshot",
+      "url": "https://github.com/hasaneyldrm/exercises-dataset/tree/7455efae41b330c265e7cd4b78dfa848e7ce5ebd"
+    }
+  },
+  "muscles": [
+    {
+      "id": "abs",
+      "aliases": [
+        "abdominals",
+        "abdominal muscles",
+        "core"
+      ],
+      "function": "Abdominal muscles help bend, rotate and stabilize the trunk; different muscles perform different actions.",
+      "sources": [
+        "trunk"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "pectorals",
+      "aliases": [
+        "chest",
+        "pecs",
+        "pectoralis major"
+      ],
+      "function": "Pectoralis major brings the upper arm forward and across the chest.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "biceps",
+      "aliases": [
+        "bicep",
+        "biceps brachii"
+      ],
+      "function": "Biceps bends the elbow and turns the forearm palm-up.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "triceps",
+      "aliases": [
+        "tricep",
+        "triceps brachii"
+      ],
+      "function": "Triceps straightens the elbow.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "delts",
+      "aliases": [
+        "deltoids",
+        "deltoid",
+        "shoulders"
+      ],
+      "function": "Deltoid raises the arm; its front and back portions also move the arm forward and backward.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "lats",
+      "aliases": [
+        "latissimus dorsi",
+        "lat"
+      ],
+      "function": "Latissimus dorsi pulls the upper arm back and toward the body.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "upper back",
+      "aliases": [
+        "rhomboids"
+      ],
+      "function": "This broad region includes muscles that position and stabilize the shoulder blades, such as the rhomboids.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "region"
+    },
+    {
+      "id": "traps",
+      "aliases": [
+        "trapezius"
+      ],
+      "function": "Trapezius helps position the shoulder blades; actions differ across its upper, middle and lower portions.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "forearms",
+      "aliases": [
+        "forearm"
+      ],
+      "function": "Forearm muscles move the wrist and fingers; some rotate the forearm.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "region"
+    },
+    {
+      "id": "serratus anterior",
+      "aliases": [
+        "serratus"
+      ],
+      "function": "Serratus anterior moves the shoulder blade forward around the rib cage.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle"
+    },
+    {
+      "id": "levator scapulae",
+      "aliases": [],
+      "function": "Levator scapulae raises the shoulder blade.",
+      "sources": [
+        "upper"
+      ],
+      "kind": "muscle"
+    },
+    {
+      "id": "glutes",
+      "aliases": [
+        "gluteals",
+        "gluteus",
+        "buttocks"
+      ],
+      "function": "Gluteus maximus extends the hip. Gluteus medius and minimus move the thigh outward and help stabilize the pelvis.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "quads",
+      "aliases": [
+        "quadriceps",
+        "quadriceps femoris"
+      ],
+      "function": "Quadriceps straighten the knee. Rectus femoris also helps bend the hip.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "hamstrings",
+      "aliases": [
+        "hamstring"
+      ],
+      "function": "Hamstrings bend the knee; most also extend the hip.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "calves",
+      "aliases": [
+        "calf",
+        "gastrocnemius",
+        "soleus"
+      ],
+      "function": "Gastrocnemius and soleus point the foot downward at the ankle; gastrocnemius also assists knee bending.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "adductors",
+      "aliases": [
+        "hip adductors",
+        "inner thigh"
+      ],
+      "function": "Hip adductors bring the thigh toward the midline.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "abductors",
+      "aliases": [
+        "hip abductors",
+        "outer hip"
+      ],
+      "function": "Hip abductors move the thigh away from the midline.",
+      "sources": [
+        "lower"
+      ],
+      "kind": "muscle_group"
+    },
+    {
+      "id": "spine",
+      "aliases": [
+        "erector spinae",
+        "lower back"
+      ],
+      "function": "The spine is a body structure, not a muscle. Nearby back muscles help extend and stabilize the trunk.",
+      "sources": [
+        "back"
+      ],
+      "kind": "source_region_label"
+    },
+    {
+      "id": "cardiovascular system",
+      "aliases": [
+        "cardio"
+      ],
+      "function": "This source category refers to conditioning, not a single skeletal muscle. Exercise targets alone do not specify a training dose.",
+      "sources": [
+        "dataset"
+      ],
+      "kind": "source_system_label"
+    }
+  ],
+  "ordering": {
+    "version": "sequence-policy-1",
+    "review_status": "pending_qualified_review",
+    "sources": [
+      "order",
+      "priority"
+    ],
+    "principle": "After preparation, place exercises most important to the session goal early. There is no universal first exercise or rule that a larger muscle must always come first.",
+    "steps": [
+      {
+        "stage": "Readiness",
+        "instruction": "Check readiness and apply the independent safety rules before training."
+      },
+      {
+        "stage": "Preparation",
+        "instruction": "Use easy general movement, relevant movement rehearsal and gradual warm-up sets for the planned exercises."
+      },
+      {
+        "stage": "Priority work",
+        "instruction": "Perform the main goal-focused work while fresh. Technical or power work requires appropriate skill and a reviewed plan."
+      },
+      {
+        "stage": "Supporting work",
+        "instruction": "Follow with the remaining planned exercises and accessories; avoid unnecessary pre-fatigue of a priority exercise."
+      },
+      {
+        "stage": "Conditioning",
+        "instruction": "Place conditioning according to the session goal and fatigue demands. This resistance-session template puts optional conditioning here; endurance-focused sessions need a different plan."
+      },
+      {
+        "stage": "Cooldown and feedback",
+        "instruction": "Reduce effort gradually, use comfortable mobility if desired, and record performance and recovery."
+      }
+    ],
+    "evidence_boundary": "Strength adaptations can favor exercises performed early. The detailed stage template is an explicit product policy, not a learned optimal order or a direct finding for every goal."
+  }
+}

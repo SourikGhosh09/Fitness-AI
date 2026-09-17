@@ -1,0 +1,10 @@
+import React from 'react';
+import {View,Text,Pressable,TextInput,StyleSheet} from 'react-native';
+export function Choice({label,value,options,onChange}:{label:string;value:any;options:{value:any;label:string}[];onChange:(value:any)=>void}){
+ return <View style={s.group}><Text style={s.label}>{label}</Text><View accessibilityRole="radiogroup" accessibilityLabel={label} style={s.options}>{options.map((o,i)=><Pressable key={i} accessibilityRole="radio" accessibilityState={{checked:value===o.value}} accessibilityLabel={`${label}: ${o.label}`} onPress={()=>onChange(o.value)} style={[s.pill,value===o.value&&s.selected]}><Text style={[s.text,value===o.value&&s.dark]}>{o.label}</Text></Pressable>)}</View></View>;
+}
+export function NumberAdjuster({label,value,onChange,step=1,min=0,max=600}:{label:string;value:string;onChange:(value:string)=>void;step?:number;min?:number;max?:number}){
+ function adjust(delta:number){const n=value.trim()===''?min:Number(value);if(Number.isFinite(n))onChange(String(Math.round(Math.max(min,Math.min(max,n+delta))*100)/100));}
+ return <View style={s.group}><Text style={s.label}>{label}</Text><View style={s.options}><Pressable accessibilityRole="button" accessibilityLabel={`Decrease ${label}`} onPress={()=>adjust(-step)} style={s.pill}><Text style={s.text}>−</Text></Pressable><TextInput accessibilityLabel={label} keyboardType="decimal-pad" value={value} onChangeText={onChange} style={s.input}/><Pressable accessibilityRole="button" accessibilityLabel={`Increase ${label}`} onPress={()=>adjust(step)} style={s.pill}><Text style={s.text}>+</Text></Pressable></View></View>;
+}
+const s=StyleSheet.create({group:{gap:8},label:{color:'#b5c3b9',fontSize:15,lineHeight:22},options:{flexDirection:'row',flexWrap:'wrap',gap:8,alignItems:'center'},pill:{minWidth:48,minHeight:48,padding:12,borderWidth:1,borderColor:'#53695a',borderRadius:12,justifyContent:'center',alignItems:'center'},selected:{backgroundColor:'#d1f599',borderColor:'#d1f599'},text:{fontSize:15,color:'#f1f5ee'},dark:{color:'#101915'},input:{minHeight:50,minWidth:92,flex:1,borderWidth:1,borderColor:'#53695a',borderRadius:12,color:'#f1f5ee',padding:12,fontSize:18}});

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "fastapi",
+  "functions": {
+    "app.py": {
+      "maxDuration": 60,
+      "includeFiles": "data/**",
+      "excludeFiles": "{apps/**,docs/**,integrations/**,backend/tests/**,backend/fitness.db*,backups/**,training-private/**}"
+    }
+  }
+}

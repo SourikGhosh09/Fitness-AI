@@ -1,0 +1,39 @@
+name: Notion synchronization
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: fitness-notion-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: vars.NOTION_SYNC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.FITNESS_DATABASE_URL_DIRECT }}
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATA_SOURCE_ID: f334c7a2-43bc-4663-a74c-55575df24f07
+      PYTHONPATH: backend
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.lock
+      - name: Check required secrets
+        run: |
+          test -n "$DATABASE_URL" || { echo 'Missing FITNESS_DATABASE_URL_DIRECT secret'; exit 1; }
+          test -n "$NOTION_TOKEN" || { echo 'Missing NOTION_TOKEN secret'; exit 1; }
+      - run: pip install -r backend/requirements.lock
+      - run: python scripts/prepare_assets.py --skip-media
+      - name: Import current consented observations
+        run: python -m fitness.notion_worker --once
+      - name: Train candidate from reviewed examples
+        run: python -m fitness.ml train

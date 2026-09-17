@@ -1,0 +1,1 @@
+event_id,session_id,exercise_id,occurred_at,experience,sleep_hours,energy,soreness,stress,reps,load_kg,target_rpe,set_number,previous_load_kg,previous_rpe,history_sessions,pattern,actual_rpe,actual_reps,actual_load_kg,pain,skipped

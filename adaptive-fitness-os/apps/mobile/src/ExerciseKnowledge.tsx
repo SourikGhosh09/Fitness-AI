@@ -1,0 +1,11 @@
+import React,{useState} from 'react';
+import {Pressable,Text,View,StyleSheet,Linking} from 'react-native';
+import {load} from './api';
+type Reference={title:string;url:string};
+type Info={primary_target:string;secondary_targets:string[];muscle_function:{function:string;sources:Reference[]}|null;note:string};
+export function ExerciseKnowledge({exerciseId,name}:{exerciseId:string;name:string}){
+ const [info,setInfo]=useState<Info|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[open,setOpen]=useState(false);
+ async function show(){if(busy)return;if(info){setOpen(!open);return;}setBusy(true);setError('');try{const r=await load<Info>('/exercises/'+encodeURIComponent(exerciseId)+'/knowledge');setInfo(r.data);setOpen(true);}catch(e){setError(e instanceof Error?e.message:'Could not load exercise information.');}finally{setBusy(false);}}
+ return <View style={s.box}><Pressable accessibilityRole="button" accessibilityLabel={'What '+name+' targets'} accessibilityState={{expanded:open,disabled:busy}} disabled={busy} onPress={()=>void show()} style={s.button}><Text style={s.buttonText}>{busy?'Loading…':open?'Hide muscle details':'What this exercise targets'}</Text></Pressable>{!!error&&<Text accessibilityRole="alert" style={s.text}>{error}</Text>}{open&&info&&<><Text style={s.text}>Primary source target: {info.primary_target}</Text>{!!info.secondary_targets.length&&<Text style={s.text}>Also listed: {info.secondary_targets.join(', ')}</Text>}{info.muscle_function&&<Text style={s.text}>{info.muscle_function.function}</Text>}<Text style={s.muted}>{info.note}</Text>{info.muscle_function?.sources.map(ref=><Pressable key={ref.url} accessibilityRole="link" accessibilityLabel={'Read '+ref.title} style={s.button} onPress={()=>void Linking.openURL(ref.url).catch(()=>setError('Could not open the reference.'))}><Text style={s.link}>{ref.title}</Text></Pressable>)}</>}</View>;
+}
+const s=StyleSheet.create({box:{gap:10},button:{minHeight:48,padding:12,borderRadius:12,borderWidth:1,borderColor:'#35473b',justifyContent:'center'},buttonText:{color:'#d1f599',fontSize:16},text:{color:'#f1f5ee',fontSize:16,lineHeight:25},muted:{color:'#b5c3b9',fontSize:14,lineHeight:22},link:{color:'#d1f599',fontSize:14,lineHeight:22,textDecorationLine:'underline'}});

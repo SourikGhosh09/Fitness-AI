@@ -1,0 +1,1 @@
+{"expo":{"name":"Adaptive Fitness OS","slug":"adaptive-fitness-os","version":"0.1.0","orientation":"portrait","userInterfaceStyle":"dark","ios":{"bundleIdentifier":"com.sourik.adaptivefitness","supportsTablet":true},"android":{"package":"com.sourik.adaptivefitness","permissions":[]},"plugins":["expo-secure-store","expo-sqlite"],"extra":{"releaseStage":"development"}}}

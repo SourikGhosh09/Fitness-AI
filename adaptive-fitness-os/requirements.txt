@@ -1,0 +1,2 @@
+# Reuse the tested lock; never resolve a separate deployment dependency graph.
+-r backend/requirements.lock

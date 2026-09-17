@@ -1,0 +1,69 @@
+FITNESS AI — AUTOMATIC NOTION SYNCHRONIZATION
+Updated 15 September 2026
+
+STATUS
+The automatic synchronization code has been added and tested locally.
+It is NOT running on a live server yet. This download contains the complete
+updated source folder, not an APK or a production-ready release.
+
+WHAT IT DOES
+Private Notion exercise answers -> Fitness app backend -> contribution review.
+A continuous worker checks every 5 minutes once started. The new free-hosting
+GitHub Actions option checks approximately hourly once enabled. Repeat checks do not duplicate
+records. Edits are validated. Withdrawal removes imported backend records and
+queues clearing/trashing of known linked Notion rows. New data does not
+immediately change AI weights.
+
+WHAT IS STILL NEEDED TO SWITCH IT ON
+1. A running Fitness API/database plus the included hourly GitHub Actions job
+   (or a continuously running worker host).
+2. An internal Notion integration with read/update access to Workout Observations.
+3. Its token saved privately on the worker host as NOTION_TOKEN.
+4. NOTION_DATA_SOURCE_ID set to f334c7a2-43bc-4663-a74c-55575df24f07.
+Do not send the token in chat or put it inside the mobile app.
+
+PARTICIPANT SETUP
+In the updated app, open Settings. Enable shared learning, then enable
+Notion collection. Give the displayed participant code privately to Sourik.
+Sourik records the person's explicit consent and uses that code on their
+Notion exercise rows. A hand-written code like P001 will not link an account.
+No personal Notion account is required for participants.
+
+START THE WORKER
+After backend installation and database migrations, from the backend folder:
+python -m fitness.notion_worker --once
+Then, for continuous sync:
+python -m fitness.notion_worker --interval-seconds 300
+
+WHAT TO OPEN NEXT
+README.md — start the API and native app.
+integrations/notion/README.md — activation, row fields and testing steps.
+docs/NOTION_VALIDATION.md — tests and remaining limitations.
+
+This connection imports Notion answers into the app. It does not export native
+app logs to Notion, create a public survey form, or deploy trained weights.
+Notion may retain deleted data in its own history/backups. App code and host
+credentials are separate from ChatGPT's Notion connection.
+
+HOSTING ATTEMPT — 15 SEPTEMBER 2026
+Created database fitness_ai in the confirmed Neon project
+neon-byzantine-xylophone. Database schema/import is not initialized yet.
+No Render service has been created and no paid resource was enabled.
+GitHub rejected creation of README.md in SourikGhosh09/Fitness-AI with
+403: Resource not accessible by integration. The repository is still empty.
+
+NEXT ACCESS STEP
+Open https://github.com/settings/installations. Find the GitHub application
+used by this ChatGPT connection, click Configure, select Fitness-AI under
+repository access, and save. Review its permissions: source publication needs
+Contents write permission and workflow publication needs Workflows write
+permission. GitHub App permissions are defined by the app; if only read access
+is offered, that connection cannot publish this code. Do not send passwords
+or tokens in chat.
+
+The package includes scripts/render_build.sh, verified asset restoration, and
+.github/workflows/notion-sync.yml. Sync stays disabled until its two secrets
+and NOTION_SYNC_ENABLED=true are configured. See docs/RENDER_NOTION_DEPLOYMENT.md.
+Validation: 127 backend tests passed, plus 2 asset restoration tests.
+Existing exercise classifier weights are bundled. No participant training
+was run this turn; no live model was activated.
