@@ -4,6 +4,7 @@ PostgreSQL installations use pg_dump/PITR as documented in BACKUP.md.
 Backups contain sensitive data; keep them on encrypted storage, outside source control.
 """
 import argparse,hashlib,json,os,sqlite3,tempfile,time,zipfile
+from contextlib import closing
 from pathlib import Path
 from sqlalchemy.engine import make_url
 
@@ -16,7 +17,7 @@ def backup(database_url,destination):
     dest.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         snapshot=Path(tmp)/'fitness.sqlite'
-        with sqlite3.connect(source.as_uri()+'?mode=ro',uri=True) as src,sqlite3.connect(snapshot) as out:
+        with closing(sqlite3.connect(source.as_uri()+'?mode=ro',uri=True)) as src,closing(sqlite3.connect(snapshot)) as out:
             src.backup(out)
             if out.execute('PRAGMA integrity_check').fetchone()[0]!='ok':raise ValueError('Database integrity check failed')
         raw=snapshot.read_bytes()
@@ -41,7 +42,7 @@ def restore(archive_path,destination):
     fd=os.open(dest,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     try:
         with os.fdopen(fd,'wb') as f:f.write(raw)
-        with sqlite3.connect(dest) as c:
+        with closing(sqlite3.connect(dest)) as c, c:
             if c.execute('PRAGMA integrity_check').fetchone()[0]!='ok':raise ValueError('Restored database failed integrity check')
             tables={r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             if 'learning_deployment' in tables:

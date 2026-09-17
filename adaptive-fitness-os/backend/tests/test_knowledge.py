@@ -10,7 +10,7 @@ from fitness.sequencing import order_selected
 from test_system import system,workout
 
 def test_actual_model_integrity_and_heldout_partitions():
-    rows=json.loads((data_dir()/'exercises.json').read_text());parts=model.split_rows(rows)
+    rows=json.loads((data_dir()/'exercises.json').read_text(encoding='utf-8'));parts=model.split_rows(rows)
     groups={k:{model.family(r['name']) for r in v} for k,v in parts.items()}
     assert not groups['train']&groups['validation'] and not groups['test']&(groups['train']|groups['validation'])
     artifact=knowledge.read('exercise-model.json');report=knowledge.read('training-report.json')
@@ -57,7 +57,7 @@ def test_source_change_disables_inference(tmp_path,monkeypatch):
     assert knowledge.classify('barbell curl')['status']=='unavailable'
 
 def test_every_source_target_has_educational_entry():
-    rows=json.loads((data_dir()/'exercises.json').read_text())
+    rows=json.loads((data_dir()/'exercises.json').read_text(encoding='utf-8'))
     for target in {r['target'] for r in rows}:assert knowledge.muscle(target)
     assert knowledge.muscle('chest')['id']=='pectorals'
     assert knowledge.muscle('spine')['kind']=='source_region_label'

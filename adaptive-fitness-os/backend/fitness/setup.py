@@ -10,8 +10,8 @@ from .tutorials import grant_rights
 
 def initialize(database):
     root=media_assets.data_dir()
-    authorization=json.loads((root/'media-authorization.json').read_text())
-    inventory=json.loads((root/'tutorial-media-manifest.json').read_text())
+    authorization=json.loads((root/'media-authorization.json').read_text(encoding='utf-8'))
+    inventory=json.loads((root/'tutorial-media-manifest.json').read_text(encoding='utf-8'))
     raw=(root/'exercises.json').read_bytes()
     sha=hashlib.sha256(raw).hexdigest()
     if authorization['dataset_sha256']!=sha or inventory['dataset_sha256']!=sha:

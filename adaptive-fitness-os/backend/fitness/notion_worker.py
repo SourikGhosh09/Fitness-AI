@@ -1,5 +1,5 @@
 """Run one Notion synchronizer beside the API, never inside a mobile app/function."""
-import argparse, contextlib, hashlib, json, os, time, uuid
+import argparse, contextlib, errno, hashlib, json, os, tempfile, time, uuid
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError, URLError
 from sqlalchemy import select, insert, update, delete, text
@@ -84,13 +84,26 @@ def worker_lock(database):
             try: yield True
             finally: c.execute(text('SELECT pg_advisory_unlock(518823417)'))
     elif database.dialect.name=='sqlite':
-        import fcntl
         key=hashlib.sha256(str(database.url).encode()).hexdigest()[:20]
-        with open('/tmp/fitness-notion-'+key+'.lock','a') as f:
-            try: fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
-            except BlockingIOError: yield False; return
+        with open(os.path.join(tempfile.gettempdir(),'fitness-notion-'+key+'.lock'),'a+b') as f:
+            if os.name=='nt':
+                import msvcrt
+                # Windows locks a byte range; all workers use the first byte.
+                f.seek(0,os.SEEK_END)
+                if not f.tell(): f.write(b'\0'); f.flush()
+                f.seek(0)
+                lock=lambda: msvcrt.locking(f.fileno(),msvcrt.LK_NBLCK,1)
+                unlock=lambda: msvcrt.locking(f.fileno(),msvcrt.LK_UNLCK,1)
+            else:
+                import fcntl
+                lock=lambda: fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                unlock=lambda: fcntl.flock(f,fcntl.LOCK_UN)
+            try: lock()
+            except OSError as exc:
+                if exc.errno not in (errno.EACCES,errno.EAGAIN,errno.EDEADLK): raise
+                yield False; return
             try: yield True
-            finally: fcntl.flock(f,fcntl.LOCK_UN)
+            finally: unlock()
     else: raise ValueError('Notion worker requires PostgreSQL or local SQLite')
 
 def save_state(database, values):
