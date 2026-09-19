@@ -11,7 +11,7 @@
     "test:media": "tsc src/media-source.ts --outDir .test-media --target es2022 --module commonjs --skipLibCheck && node --test tests/media-source.test.cjs"
   },
   "dependencies": {
-    "expo": "~54.0.0",
+    "expo": "~57.0.22",
     "expo-crypto": "~15.0.0",
     "expo-image": "~3.0.11",
     "expo-secure-store": "~15.0.0",
