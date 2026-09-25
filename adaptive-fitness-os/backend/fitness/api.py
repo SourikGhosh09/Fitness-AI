@@ -12,7 +12,7 @@ from .learning_contracts import LearningConsent,TrainingBatch
 
 def create_app(database=None):
     database=database or db.make_engine()
-    app=FastAPI(title='Adaptive Fitness OS',version='0.1.0',description='Experimental adaptive training API. See release gates before real-world use.')
+    app=FastAPI(title='Adaptive Fitness OS',version='0.2.0',description='Experimental adaptive training API. See release gates before real-world use.')
     app.state.database=database
     import os
     origins=[x for x in os.getenv('CORS_ORIGINS','').split(',') if x]
@@ -49,19 +49,27 @@ def create_app(database=None):
         rows=c.execute(select(db.exercises,db.exercise_metadata.c.data.label('metadata'),db.exercise_metadata.c.status.label('review_status')).join(db.exercise_metadata,db.exercises.c.id==db.exercise_metadata.c.exercise_id)).mappings()
         return [dict(r) for r in rows]
     def history(c,u):
-        rows=c.execute(select(db.logs,db.workouts.c.plan.label('prescription')).join(db.workouts,db.logs.c.workout_id==db.workouts.c.id).where(db.logs.c.user_id==u,db.workouts.c.status=='completed').order_by(db.logs.c.created_at)).mappings();groups={}
+        rows=c.execute(select(db.logs,db.workouts.c.plan.label('prescription'),db.workouts.c.day.label('workout_day')).join(db.workouts,db.logs.c.workout_id==db.workouts.c.id).where(db.logs.c.user_id==u,db.workouts.c.status=='completed').order_by(db.logs.c.created_at)).mappings();groups={}
         for r in rows:
-            target=next((i['reps'] for i in r['prescription']['items'] if i['exercise_id']==r['exercise_id']),None)
-            value={**r['data'],'target_reps':target}
-            groups.setdefault(r['exercise_id'],{}).setdefault(r['workout_id'],[]).append(value)
+            item=next((i for i in r['prescription']['items'] if i['exercise_id']==r['exercise_id']),None)
+            target=item.get('reps') if item else None
+            value={**r['data'],'target_reps':target,'target_sets':item.get('sets') if item else None,'primary_muscles':item.get('primary_muscles',[]) if item else [],'secondary_muscles':item.get('secondary_muscles',[]) if item else []}
+            session=groups.setdefault(r['exercise_id'],{}).setdefault(r['workout_id'],{'day':r['workout_day'],'values':[]})
+            session['values'].append(value)
         out={}
         for e,sessions in groups.items():
-            summaries=[];last=None
-            for values in sessions.values():
-                performed=[v for v in values if not v['skipped'] and v['rpe'] is not None]
-                summaries.append({'rpe':sum(v['rpe'] for v in performed)/len(performed) if performed else None,'missed':any(v['skipped'] or v['target_reps'] is None or v['reps']<v['target_reps'] for v in values)})
+            summaries=[];last=None;primary=[];secondary=[]
+            for workout_id,session in sessions.items():
+                values=session['values'];performed=[v for v in values if not v['skipped'] and v['rpe'] is not None]
+                primary=values[-1].get('primary_muscles',primary);secondary=values[-1].get('secondary_muscles',secondary)
+                summary={'workout_id':workout_id,'day':session['day'],'rpe':sum(v['rpe'] for v in performed)/len(performed) if performed else None,
+                         'missed':any(v['skipped'] or v['target_reps'] is None or v['reps']<v['target_reps'] for v in values),
+                         'completed_sets':sum(not v['skipped'] for v in values),'target_sets':values[-1].get('target_sets'),
+                         'target_reps':values[-1].get('target_reps'),'avg_reps':round(sum(v['reps'] for v in performed)/len(performed),2) if performed else None,
+                         'min_reps':min((v['reps'] for v in performed),default=None),'primary_muscles':primary,'secondary_muscles':secondary}
+                summaries.append(summary)
                 if performed:last=performed[-1]['load_kg']
-            out[e]={'sessions':summaries,'last_load':last,'adherence':sum(not s['missed'] for s in summaries)/len(summaries)}
+            out[e]={'sessions':summaries,'last_load':last,'adherence':sum(not s['missed'] for s in summaries)/len(summaries),'primary_muscles':primary,'secondary_muscles':secondary}
         return out
     def owned_workout(c,u,w):
         row=c.execute(select(db.workouts).where(db.workouts.c.id==w,db.workouts.c.user_id==u).with_for_update()).mappings().first()
@@ -78,7 +86,7 @@ def create_app(database=None):
     @app.get('/healthz')
     def health():
         with database.connect() as c:c.execute(select(1))
-        return {'status':'ok','version':'0.1.0'}
+        return {'status':'ok','version':'0.2.0'}
     @app.post('/api/v1/auth/register',status_code=201)
     def register(data:Credentials):
         try:
@@ -176,7 +184,7 @@ def create_app(database=None):
                     plan={'kind':'recovery','readiness':engine.readiness_score(r),'minutes':0,'items':[],'preparation':[],'cooldown':['Planned rest day. Recovery supports progress.'],'engine_version':engine.VERSION}
                 else:
                     past=history(c,u)
-                    plan=engine.plan(p,r,catalog(c),past)
+                    plan=engine.plan(p,r,catalog(c),past,day)
                     learning.annotate_plan(c,u,plan,p,r,past,catalog(c))
                 w=db.uid();c.execute(insert(db.workouts).values(id=w,user_id=u,day=day,status='planned',plan=plan))
                 c.execute(insert(db.decisions).values(user_id=u,workout_id=w,engine_version=engine.VERSION,data=plan))
@@ -245,7 +253,7 @@ def create_app(database=None):
     def progress(authorization:str|None=Header(default=None)):
         with database.connect() as c:
             u=auth(c,authorization,'read')['user_id'];points=c.execute(select(func.coalesce(func.sum(db.xp.c.amount),0)).where(db.xp.c.user_id==u)).scalar_one()
-            return {'xp':points,'level':1+points//1000,'exercise_history':history(c,u),'model':learning.status(c,u)['mode']}
+            past=history(c,u);latest=c.execute(select(db.readiness.c.data).where(db.readiness.c.user_id==u).order_by(db.readiness.c.created_at.desc())).scalar();score=engine.readiness_score(Readiness(**latest)) if latest else 100;return {'xp':points,'level':1+points//1000,'exercise_history':past,'model':learning.status(c,u)['mode'],'adaptive_summary':{'engine_version':engine.VERSION,'recent_fatigue':engine.fatigue_state(past,score),'trailing_7d_workload':engine.weekly_workload(past),'weekly_set_cap':engine.weekly_set_cap(profile(c,u))}}
     @app.get('/api/v1/integrations/notion')
     def notion_status(authorization:str|None=Header(default=None)):
         with database.connect() as c:return notion_sync.status(c,auth(c,authorization,session=True)['user_id'])

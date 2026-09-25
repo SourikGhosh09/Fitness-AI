@@ -10,9 +10,9 @@
 | Explainable ranking | Implemented heuristic scoring with saved reasoning |
 | Movement model | Initial resistance patterns; comprehensive sport/cardio/mobility model pending |
 | Full workout phases | Preparation, training and cooldown instructions; dedicated activation/dynamic mobility/conditioning engines pending |
-| Load / RPE / RIR | Implemented initial conservative prescriptions |
-| Progression strategies | Small load change after three sessions; other strategies metadata/design only |
-| Volume / fatigue / deload | Readiness and workload heuristics; weekly caps, longitudinal fatigue and complete deload logic pending |
+| Load / RPE / RIR | Phase 2 increment implemented: goal-aware rep ranges, readiness-bounded RPE/RIR, and exercise-specific load/rep adaptation |
+| Progression strategies | Phase 2 increment: three-session double progression (reps before load), difficult-session regression, readiness holds; tempo/ROM/density strategies remain pending |
+| Volume / fatigue / deload | Phase 2 increment: trailing 7-day set-equivalent guardrails, distinct-workout fatigue aggregation, and conservative deload scaling; individualized validated volume targets remain pending |
 | Periodization | Domain/schema foundation; full macro/meso/microcycle programming pending |
 | Substitution | Same-pattern reviewed alternative; pain/discomfort pause; pre-logging only |
 | Feedback / history | Guided contribution wizard, optional check-ins, actual effort, copy-set controls, unknown answers, enjoyment/duration, private history, draft/retry behavior and operator review; body-composition UI pending |

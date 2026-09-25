@@ -1,0 +1,735 @@
+## FINAL INSTRUCTION — GENERATE THE COMPLETE VIBECODING PROJECT PACK
+
+Now use **everything I have explained above in this prompt** as the source of truth for my project idea.
+
+Do not merely summarize my idea. Analyze it carefully and convert it into a **complete, internally consistent project documentation and development starter pack** that can be used by AI coding agents such as Codex, Cursor, Claude Code, GitHub Copilot, or similar tools.
+
+### IMPORTANT
+
+Before generating the files:
+
+1. Understand the complete product idea described above.
+2. Extract the product goals, users, requirements, features, workflows, constraints, technical requirements, business rules, UI requirements, data requirements, integrations, security considerations, and operational requirements.
+3. Resolve obvious inconsistencies where possible.
+4. Do **not** invent major product requirements that I did not describe.
+5. When something important is genuinely unspecified, document it under an appropriate `Open Questions` or `Assumptions` section rather than silently inventing an answer.
+6. Make reasonable technical assumptions only where necessary, and clearly mark them as assumptions.
+7. Keep all documents consistent with each other.
+8. Do not generate implementation code for the actual application yet. This task is to create the **project planning, specification, AI-agent context, and development-control files**.
+
+---
+
+# CREATE THIS PROJECT STRUCTURE
+
+Create a complete ZIP package with this structure:
+
+```text
+my-project/
+│
+├── AGENTS.md
+├── README.md
+├── .env.example
+│
+├── docs/
+│   │
+│   ├── PRD.md
+│   ├── FEATURES.md
+│   ├── USER_FLOWS.md
+│   ├── ARCHITECTURE.md
+│   ├── DATA_MODEL.md
+│   ├── API_SPEC.md
+│   ├── UI_SPEC.md
+│   ├── TEST_PLAN.md
+│   │
+│   ├── DECISIONS/
+│   │   ├── 001-*.md
+│   │   ├── 002-*.md
+│   │   └── ...
+│   │
+│   └── operations/
+│       ├── DEPLOYMENT.md
+│       └── RUNBOOK.md
+│
+├── TASKS.md
+├── HANDOVER.md
+├── CHANGELOG.md
+│
+├── SECURITY.md
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+└── src/
+```
+
+If the project requires additional documentation files that are genuinely useful, you may add them, but **do not create unnecessary documentation just for the sake of having more files**.
+
+---
+
+# 1. AGENTS.md
+
+Create a high-quality `AGENTS.md` specifically for AI coding agents.
+
+It must explain:
+
+* What the project is
+* The project's primary goal
+* Target users
+* Important product rules
+* Repository structure
+* Technology assumptions
+* Coding principles
+* Architecture principles
+* Naming conventions
+* File organization rules
+* Dependency rules
+* Database rules
+* API rules
+* UI rules
+* Security rules
+* Testing requirements
+* Validation requirements
+* Environment-variable rules
+* Git/commit expectations
+* How the AI should approach a new task
+* What the AI must NOT do
+* When the AI should ask for clarification
+* Which documentation files must be updated when making certain changes
+
+The instructions should be practical and concise enough that an AI coding agent can actually follow them.
+
+Do not fill this file with generic motivational text.
+
+---
+
+# 2. README.md
+
+Create a professional project README containing:
+
+* Project name
+* One-line description
+* Product overview
+* Problem being solved
+* Target users
+* Core functionality
+* Current project status
+* Planned technology stack
+* Repository structure
+* Development prerequisites
+* Environment setup
+* Installation instructions
+* Development commands
+* Testing commands
+* Build commands
+* Deployment overview
+* Documentation index
+* Important project rules
+* Open questions
+* Assumptions
+
+Clearly distinguish between:
+
+* Confirmed requirements
+* Assumptions
+* Future ideas
+
+---
+
+# 3. .env.example
+
+Create `.env.example` containing **only placeholder environment variables that the project actually needs or is reasonably expected to need**.
+
+Examples:
+
+```env
+DATABASE_URL=
+NEXT_PUBLIC_APP_URL=
+AUTH_SECRET=
+API_KEY=
+```
+
+Do NOT include real credentials, API keys, passwords, tokens, or secrets.
+
+Add comments explaining what each variable is used for where helpful.
+
+---
+
+# 4. docs/PRD.md
+
+Create a detailed Product Requirements Document.
+
+Include:
+
+* Product vision
+* Problem statement
+* Goals
+* Non-goals
+* Target users/personas
+* User needs
+* Core use cases
+* Functional requirements
+* Non-functional requirements
+* Business rules
+* Constraints
+* Success criteria
+* MVP scope
+* Post-MVP scope
+* Out-of-scope functionality
+* Assumptions
+* Open questions
+
+Every requirement should be written clearly enough that an AI developer can implement it without guessing.
+
+---
+
+# 5. docs/FEATURES.md
+
+Create a structured feature inventory.
+
+For every feature include, where applicable:
+
+* Feature name
+* Description
+* User value
+* Priority
+* Related user flow
+* Functional requirements
+* Edge cases
+* Dependencies
+* Acceptance criteria
+* Testing considerations
+* Current status
+
+Separate:
+
+* MVP
+* Post-MVP
+* Future/optional
+
+Do not turn speculative ideas into confirmed requirements.
+
+---
+
+# 6. docs/USER_FLOWS.md
+
+Document the important user journeys.
+
+For each flow include:
+
+* Flow name
+* Starting point
+* Preconditions
+* Step-by-step journey
+* User actions
+* System responses
+* Success state
+* Error states
+* Empty states
+* Permission restrictions
+* Edge cases
+
+Include flows for authentication, onboarding, primary product functionality, important settings, errors, and other flows relevant to the idea.
+
+Use Mermaid diagrams where they improve clarity.
+
+---
+
+# 7. docs/ARCHITECTURE.md
+
+Design an appropriate technical architecture based on the project idea.
+
+Include:
+
+* Architecture overview
+* Major components
+* Frontend architecture
+* Backend architecture
+* Database architecture
+* Authentication/authorization architecture
+* External services
+* API architecture
+* File/storage architecture if applicable
+* Background jobs if applicable
+* Caching if applicable
+* Notifications if applicable
+* Observability/logging
+* Deployment architecture
+* Data flow
+* Security boundaries
+* Scalability considerations
+
+Include Mermaid diagrams where useful.
+
+Do not over-engineer the project.
+
+Choose the simplest architecture that can reasonably support the requirements.
+
+---
+
+# 8. docs/DATA_MODEL.md
+
+Design the application's data model.
+
+Include:
+
+* Entities
+* Fields
+* Data types
+* Required/optional fields
+* Primary keys
+* Foreign keys
+* Relationships
+* Unique constraints
+* Indexes
+* Validation rules
+* Lifecycle rules
+* Soft-delete requirements if applicable
+* Audit fields if applicable
+
+Include an ER diagram using Mermaid where useful.
+
+The data model must match the requirements and architecture.
+
+Do not invent unnecessary tables.
+
+---
+
+# 9. docs/API_SPEC.md
+
+If the project requires an API, document it comprehensively.
+
+For each endpoint include:
+
+* HTTP method
+* Path
+* Purpose
+* Authentication requirement
+* Authorization requirement
+* Request parameters
+* Request body
+* Validation
+* Response format
+* HTTP status codes
+* Error responses
+* Pagination
+* Filtering
+* Sorting
+* Rate limiting where relevant
+* Example request
+* Example response
+
+If the application does not require a conventional API, explicitly explain the chosen communication architecture instead of inventing unnecessary endpoints.
+
+---
+
+# 10. docs/UI_SPEC.md
+
+Create the UI specification.
+
+Include:
+
+* Design principles
+* Application navigation
+* Page/screen inventory
+* Layout structure
+* Responsive behavior
+* Components
+* Forms
+* Buttons
+* Tables/lists
+* Modals/dialogs
+* Notifications
+* Loading states
+* Empty states
+* Error states
+* Validation messages
+* Accessibility requirements
+* Mobile behavior
+* Important interactions
+
+For every major screen include:
+
+* Purpose
+* Entry points
+* Main components
+* User actions
+* System behavior
+* Loading state
+* Empty state
+* Error state
+* Success state
+
+Do not invent visual branding unless the original idea specifies it.
+
+---
+
+# 11. docs/TEST_PLAN.md
+
+Create a testing strategy.
+
+Include:
+
+* Testing philosophy
+* Unit tests
+* Integration tests
+* API tests
+* Database tests
+* Component tests
+* End-to-end tests
+* Authentication tests
+* Authorization tests
+* Validation tests
+* Error handling
+* Edge cases
+* Security tests
+* Accessibility tests
+* Performance considerations
+* Critical user journeys
+* Definition of done
+
+Create a clear mapping between important features and their required tests.
+
+---
+
+# 12. docs/DECISIONS/
+
+Create Architecture Decision Records for important technical decisions that can already be made from the information available.
+
+Use this format:
+
+```text
+001-decision-name.md
+002-decision-name.md
+003-decision-name.md
+```
+
+Each ADR should contain:
+
+* Title
+* Status
+* Date
+* Context
+* Decision
+* Alternatives considered
+* Consequences
+
+Do NOT create ADRs for trivial decisions.
+
+If an important decision cannot yet be made, document it as an open decision instead of pretending it has been decided.
+
+---
+
+# 13. docs/operations/DEPLOYMENT.md
+
+Create deployment documentation appropriate for the proposed architecture.
+
+Include:
+
+* Required infrastructure
+* Environment variables
+* Build process
+* Database setup
+* Database migrations
+* Deployment process
+* Production configuration
+* Domain configuration if relevant
+* SSL/HTTPS
+* Storage configuration if relevant
+* Background jobs if relevant
+* Rollback procedure
+* Post-deployment verification
+* Monitoring
+* Backup considerations
+
+Do not assume a specific hosting provider unless the original idea specifies one.
+
+---
+
+# 14. docs/operations/RUNBOOK.md
+
+Create a practical operations runbook.
+
+Include procedures for:
+
+* Application unavailable
+* Database problems
+* Failed deployment
+* Migration failure
+* Authentication problems
+* API failures
+* Background job failures
+* High error rates
+* Performance problems
+* Configuration problems
+* Secret rotation
+* Rollback
+* Data recovery
+
+Only include procedures relevant to this project.
+
+---
+
+# 15. TASKS.md
+
+Convert the project requirements into an implementation roadmap.
+
+Organize tasks into phases such as:
+
+```text
+Phase 0 — Project setup
+Phase 1 — Foundation
+Phase 2 — Core functionality
+Phase 3 — Secondary functionality
+Phase 4 — Testing
+Phase 5 — Security
+Phase 6 — Deployment
+Phase 7 — Launch
+```
+
+Each task should:
+
+* Be small enough for an AI coding agent to complete
+* Have a unique identifier
+* Have dependencies where applicable
+* Reference relevant documentation
+* Include acceptance criteria
+* Include testing requirements
+
+Use checkboxes.
+
+Example:
+
+```md
+- [ ] AUTH-001 — Create user authentication model
+  - Depends on: SETUP-001
+  - Reference: docs/DATA_MODEL.md
+  - Acceptance criteria:
+    - User records can be created
+    - Passwords are never stored in plaintext
+    - Duplicate emails are rejected
+  - Tests:
+    - Unit test
+    - Integration test
+```
+
+Order tasks logically.
+
+---
+
+# 16. HANDOVER.md
+
+Create a concise session-to-session handover document.
+
+It should contain:
+
+* Current project status
+* Current development phase
+* Recently completed work
+* Current work
+* Immediate next steps
+* Known problems
+* Known limitations
+* Important context
+* Unresolved questions
+* Files currently being worked on
+* Instructions for the next AI session
+
+Keep this file focused on **current state**, not permanent project documentation.
+
+Clearly instruct future AI agents to move permanent decisions into `docs/DECISIONS/` rather than accumulating them here.
+
+---
+
+# 17. CHANGELOG.md
+
+Create an initial changelog.
+
+Use a standard structure such as:
+
+```md
+# Changelog
+
+## Unreleased
+
+### Added
+### Changed
+### Fixed
+### Removed
+### Security
+```
+
+Do not invent historical changes.
+
+Only record that the initial project specification/documentation pack has been created.
+
+---
+
+# 18. SECURITY.md
+
+Create a project-specific security policy.
+
+Include:
+
+* Security principles
+* Authentication requirements
+* Authorization requirements
+* Input validation
+* Output handling
+* Secrets management
+* Environment variables
+* Database security
+* API security
+* Rate limiting where appropriate
+* File upload security where applicable
+* Dependency security
+* Logging considerations
+* Personal/sensitive data handling
+* Common attack surfaces relevant to this application
+* Security testing
+* Vulnerability reporting
+* Production security checklist
+
+Do not include real secrets.
+
+---
+
+# 19. .github/workflows/ci.yml
+
+Create a basic CI workflow appropriate for the selected technology stack.
+
+It should, where applicable:
+
+1. Install dependencies
+2. Validate formatting
+3. Run linting
+4. Run type checking
+5. Run automated tests
+6. Build the project
+
+Do not add unnecessary CI services.
+
+If the exact framework/package manager has not been finalized, choose a reasonable option based on the project or clearly mark the relevant parts as needing adjustment.
+
+---
+
+# 20. src/
+
+Create the `src/` directory and include only the minimum placeholder structure necessary.
+
+Do NOT build the actual application yet.
+
+If helpful, include a simple:
+
+```text
+src/
+└── .gitkeep
+```
+
+or appropriate placeholder directories.
+
+---
+
+# CONSISTENCY REQUIREMENT
+
+This is extremely important.
+
+Before creating the ZIP, cross-check every document against every other document.
+
+For example:
+
+* Every feature in `FEATURES.md` must correspond to the PRD.
+* Every major user journey must exist in `USER_FLOWS.md`.
+* Architecture must support the requirements.
+* Data model must support the features.
+* API specification must match the architecture and data model.
+* UI specification must match the user flows.
+* Tests must cover important requirements.
+* Tasks must correspond to actual implementation requirements.
+* AGENTS.md must tell AI agents to follow these documents.
+* Deployment documentation must match the proposed architecture.
+* Security requirements must match the application's actual attack surface.
+
+Do not allow contradictory assumptions between files.
+
+---
+
+# QUALITY CONTROL
+
+Before packaging the files, perform a final review.
+
+Check for:
+
+* Missing requirements
+* Contradictions
+* Duplicate requirements
+* Unnecessary complexity
+* Unrealistic architecture
+* Missing edge cases
+* Missing security considerations
+* Missing test coverage
+* Missing environment variables
+* Broken references between documents
+* Tasks that cannot actually be implemented from the documentation
+* AI instructions that conflict with the project requirements
+
+Fix inconsistencies before creating the ZIP.
+
+---
+
+# IMPORTANT BEHAVIOR RULES
+
+### Do not:
+
+* Invent major features.
+* Invent users or business requirements.
+* Invent credentials.
+* Include real secrets.
+* Pretend an unresolved decision is finalized.
+* Over-engineer the architecture.
+* Generate the actual application implementation.
+* Create dozens of unnecessary files.
+* Fill documents with generic boilerplate.
+
+### Do:
+
+* Make reasonable technical assumptions when necessary.
+* Clearly label assumptions.
+* Identify open questions.
+* Prefer simple architecture.
+* Make requirements implementation-ready.
+* Make the documentation useful to AI coding agents.
+* Keep terminology consistent across every file.
+* Use Mermaid diagrams where they materially improve understanding.
+* Keep documents concise enough for AI agents to consume effectively.
+
+---
+
+# FINAL OUTPUT
+
+After generating all files:
+
+1. Validate the entire documentation set.
+2. Ensure all referenced files actually exist.
+3. Ensure there are no accidental secrets.
+4. Ensure Markdown is valid.
+5. Ensure the project structure is correct.
+6. Package everything into:
+
+```text
+my-project-vibecoding-pack.zip
+```
+
+The ZIP must contain the complete `my-project/` directory and all generated files.
+
+Finally, provide the ZIP file as the primary output.
+
+Also provide a very short summary containing:
+
+* Project name
+* Number of files created
+* Major assumptions made
+* Major open questions
+* Recommended next step
+
+Do not start implementing the application itself unless I explicitly ask for that in a later prompt.
