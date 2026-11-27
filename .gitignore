@@ -21,3 +21,15 @@ build/
 coverage/
 
 .test-media/
+backups/
+training-private/
+*.sqlite
+*.sqlite-*
+
+.test-contribution/
+.vercel/
+
+# Reproducible assets restored by scripts/prepare_assets.py
+data/exercises.json
+data/knowledge/exercise-model.json
+data/tutorial-media/

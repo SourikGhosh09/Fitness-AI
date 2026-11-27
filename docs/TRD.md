@@ -18,7 +18,7 @@ flowchart TD
   H --> R
 ```
 
-Implemented: deterministic rules and explainable weighted ranking. Not implemented: external LLM and trained recommendation model. The coach endpoint identifies itself as rule-based and returns no fabricated actions. The intended LLM layer can select typed application tools; it cannot write SQL, select a user ID, skip safety, invent progress or return authoritative unsaved workouts.
+Implemented: deterministic rules, explainable weighted ranking, and a trainable neural RPE prediction subsystem. No model trained on real users is included; the external LLM remains unimplemented. The coach endpoint identifies itself as rule-based and returns no fabricated actions. The intended LLM layer can select typed application tools; it cannot write SQL, select a user ID, skip safety, invent progress or return authoritative unsaved workouts.
 
 ## Request processing
 
@@ -49,3 +49,21 @@ ML: event definitions and provenance must be stable before training. Use tempora
 ## Scientific policy grounding
 
 Progressive resistance training should account for experience, goals and context; the [ACSM progression position stand](https://pubmed.ncbi.nlm.nih.gov/19204579/) is a foundational reference, not validation of this implementation. Calorie requirements are estimates requiring individual context and monitoring; see [NIDDK's Body Weight Planner](https://www.niddk.nih.gov/bwp). Current scoring weights and thresholds still require review and evaluation.
+
+## Implemented neural subsystem
+
+`fitness/neural.py` implements a NumPy MLP with 24 inputs (12 numeric features plus 12 movement-pattern indicators), 32/16 tanh hidden units and a scalar RPE regression output. Training uses analytic backpropagation, Adam, training-only normalization, deterministic seeds and validation early stopping. JSON numeric arrays are stored in `learning_models.artifact`; pickle and remote executable models are not loaded. Finite differences verify analytic gradients in tests.
+
+`learning_consent`, `learning_examples`, `learning_models`, `learning_members` and `learning_deployment` are introduced by migration 0004. Snapshots retain pre-prescription features; completed sets add immutable outcomes only with an unchanged consent grant. The trainer uses user-disjoint holdouts plus future sessions of training users. Small single-user experiments use chronological session splits and cannot pass shared deployment gates. Model membership covers training AND evaluation users.
+
+The API exposes only current-user status, session-authenticated consent and train-scoped data ingestion. CSV review, training, activation and rollback are operator CLI actions with server/database access. Imported records wait for review. User API keys cannot train or promote global models. Inference occurs only after deterministic eligibility and programming; it either annotates shadow predictions or applies an explicitly reviewed downward load adjustment, followed by safety validation. See TRAINING.md for exact bounds, metrics, source limitations, privacy behavior and recurring worker operation.
+
+Backup covers database-resident weights and provenance. SQLite restore disables old credentials and quarantines learning. Hosted PostgreSQL backup/PITR, encryption, broader model bias audits and coordinated poisoning defenses remain deployment/release work.
+
+## Human contribution service (migration 0005)
+
+`user_contributions` stores owner-scoped, immutable source submissions, a consent grant, stable event/session IDs, exercise FK, reported time, original answers, frozen previous-history context, completeness report and reviewer provenance. User/event and user/session/exercise uniqueness protect retries. Owner/time indexes support retrieval. Optional observed fields remain null.
+
+`POST /api/v1/contributions` validates the bounded typed contract and checks train scope/consent. `GET /api/v1/contributions` lists only the authenticated owner's latest records with bounded pagination. `fitness.collect` implements the private operator report/show/review/export workflow. Only eligible reviewed sets create existing `learning_examples` records; the established neural trainer and deployment gates remain authoritative.
+
+The mobile Contribute wizard stores versioned per-account drafts. Its mutation requests bind to the opening session, and cache writes are serialized with clear. The cached contributor identity includes a session fingerprint (not the session secret) for safe offline recovery. Retried submissions retain their exact payload and event ID. Unit tests cover source conversion, session-bound draft persistence/erasure, API isolation, source review, unknowns, deduplication and snapshot chronology. Native rendering and real-device offline lifecycle QA remain pending.

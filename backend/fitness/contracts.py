@@ -64,11 +64,19 @@ class SetLog(Contract):
     set_number: int = Field(ge=1,le=20)
     reps: int = Field(ge=0,le=200)
     load_kg: float = Field(ge=0,le=600)
-    rpe: float = Field(ge=1,le=10)
+    rpe: float | None = Field(default=None,ge=1,le=10)
     pain: bool = False
     skipped: bool = False
+    @model_validator(mode='after')
+    def effort_for_completed_set(self):
+        if not self.skipped and self.rpe is None:raise ValueError('Record actual RPE for a completed set')
+        return self
 class CoachRequest(Contract):
     message: str = Field(min_length=1,max_length=2000)
+
+class RegenerateWorkout(Contract):
+    reason: Literal['variety','equipment','time','fatigue'] = 'variety'
+
 class Substitute(Contract):
     exercise_id: str
     reason: Literal['occupied','dislike','equipment','uncomfortable','travel']

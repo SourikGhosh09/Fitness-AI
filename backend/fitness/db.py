@@ -1,5 +1,7 @@
 import os, uuid, time
 from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, Float, Boolean, JSON, ForeignKey, UniqueConstraint, CheckConstraint, Index, event
+from sqlalchemy.engine import make_url
+from sqlalchemy.pool import NullPool
 
 def uid(): return str(uuid.uuid4())
 metadata=MetaData()
@@ -30,11 +32,55 @@ achievements=table('achievements',Column('code',String,unique=True,nullable=Fals
 challenges=table('challenges',Column('name',String,nullable=False),Column('rules',JSON,nullable=False))
 Index('ix_logs_user_time',logs.c.user_id,logs.c.created_at)
 
+# Learning data is isolated from operational workout history and is opt-in.
+learning_consent=table('learning_consent',owner(),Column('enabled',Boolean,nullable=False),Column('grant_token',String(80),nullable=False),stamp(),UniqueConstraint('user_id'))
+learning_examples=table('learning_examples',owner(),Column('event_id',String(100),nullable=False),Column('grant_token',String(80),nullable=False),Column('source',String(20),nullable=False),Column('quality',String(20),nullable=False),Column('payload_hash',String(64),nullable=False),Column('data',JSON,nullable=False),Column('review',JSON,nullable=False,default=dict),stamp(),UniqueConstraint('user_id','event_id'),CheckConstraint("quality IN ('pending','approved')"))
+learning_models=table('learning_models',Column('status',String(20),nullable=False),Column('artifact',JSON,nullable=False),Column('report',JSON,nullable=False),Column('dataset_hash',String(64),nullable=False,unique=True),Column('review',JSON,nullable=False,default=dict),stamp())
+learning_members=table('learning_members',owner(),Column('model_id',String(80),ForeignKey('learning_models.id',ondelete='CASCADE'),nullable=False,index=True),Column('grant_token',String(80),nullable=False),UniqueConstraint('user_id','model_id'))
+learning_deployment=table('learning_deployment',Column('model_id',String(80),ForeignKey('learning_models.id',ondelete='SET NULL')),Column('mode',String(10),nullable=False),CheckConstraint("id = 'global'"),CheckConstraint("mode IN ('shadow','live')"))
+Index('ix_learning_eligible',learning_examples.c.user_id,learning_examples.c.quality)
+contributions=table('user_contributions',owner(),Column('event_id',String(80),nullable=False),Column('session_id',String(80),nullable=False),Column('exercise_id',String(80),ForeignKey('exercises.id'),nullable=False),Column('occurred_at',Float,nullable=False),Column('grant_token',String(80),nullable=False),Column('payload_hash',String(64),nullable=False),Column('status',String(20),nullable=False),Column('data',JSON,nullable=False),Column('history_snapshot',JSON),Column('report',JSON,nullable=False),Column('review',JSON,nullable=False),stamp(),UniqueConstraint('user_id','event_id'),UniqueConstraint('user_id','session_id','exercise_id'),CheckConstraint("status IN ('pending','reviewed')"))
+Index('ix_contributions_user_time',contributions.c.user_id,contributions.c.occurred_at)
+
 def make_engine(url=None):
-    url=url or os.getenv('DATABASE_URL','sqlite:///./fitness.db')
-    engine=create_engine(url,connect_args={'check_same_thread':False} if url.startswith('sqlite') else {},pool_pre_ping=True)
-    if url.startswith('sqlite'):
+    serverless=os.getenv('VERCEL')=='1'
+    url=url or os.getenv('DATABASE_URL')
+    if not url:
+        if serverless:
+            raise ValueError('Vercel requires DATABASE_URL for an external PostgreSQL database')
+        url='sqlite:///./fitness.db'
+    # Provider URLs commonly omit SQLAlchemy's installed psycopg 3 driver.
+    if isinstance(url,str) and url.startswith('postgres://'):
+        url='postgresql+psycopg://'+url[len('postgres://'):]
+    elif isinstance(url,str) and url.startswith('postgresql://'):
+        url='postgresql+psycopg://'+url[len('postgresql://'):]
+    parsed=make_url(url)
+    sqlite=parsed.get_backend_name()=='sqlite'
+    if serverless and (parsed.drivername!='postgresql+psycopg' or
+                       parsed.query.get('sslmode') not in {'require','verify-ca','verify-full'}):
+        raise ValueError('Vercel requires PostgreSQL with psycopg and TLS (sslmode=require or stronger)')
+    options={'pool_pre_ping':True}
+    connect_args={'check_same_thread':False} if sqlite else {}
+    if serverless:
+        # The provider's pooled endpoint owns pooling; avoid idle per-instance pools.
+        options['poolclass']=NullPool
+        connect_args.update(connect_timeout=10,prepare_threshold=None)
+    engine=create_engine(parsed,connect_args=connect_args,**options)
+    if sqlite:
         @event.listens_for(engine,'connect')
         def pragmas(conn,_):
             conn.execute('PRAGMA foreign_keys=ON');conn.execute('PRAGMA busy_timeout=5000')
     return engine
+
+# The survey bridge issues private pseudonymous links; it cannot log in as users.
+survey_participants=table('survey_participants',owner(),Column('token_hash',String(64),nullable=False,unique=True),Column('revoked',Boolean,nullable=False,default=False),stamp(),UniqueConstraint('user_id'))
+survey_responses=table('survey_responses',owner(),Column('response_key',String(64),nullable=False,unique=True),Column('revision',Integer,nullable=False),Column('payload_hash',String(64),nullable=False),Column('contribution_id',String(80),ForeignKey('user_contributions.id',ondelete='SET NULL')),Column('status',String(20),nullable=False),stamp(),CheckConstraint('revision > 0'))
+survey_receipts=table('survey_receipts',Column('expires_at',Float,nullable=False,index=True))
+
+# Notion is an opt-in collection source, not the owner of app consent or model state.
+notion_links=table('notion_links',owner(),Column('code',String(80),nullable=False,unique=True),Column('enabled',Boolean,nullable=False),Column('consent_version',String(40),nullable=False),stamp(),UniqueConstraint('user_id'))
+notion_pages=table('notion_pages',owner(),Column('code',String(80),nullable=False),Column('consented',Boolean,nullable=False,default=False))
+notion_imports=table('notion_imports',owner(),Column('group_key',String(64),nullable=False),Column('source_hash',String(64),nullable=False),Column('contribution_id',String(80),ForeignKey('user_contributions.id',ondelete='SET NULL')),Column('status',String(40),nullable=False),Column('error_code',String(80)),UniqueConstraint('user_id','group_key'))
+# No user foreign key: queued remote cleanup must survive account deletion.
+notion_purges=table('notion_purges',Column('attempts',Integer,nullable=False,default=0))
+notion_worker_state=table('notion_worker_state',Column('data',JSON,nullable=False))

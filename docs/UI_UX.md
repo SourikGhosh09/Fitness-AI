@@ -25,3 +25,17 @@ Simple mode hides numerical ranking factors; advanced mode reveals stored reason
 ## Required device QA
 
 VoiceOver/TalkBack focus order, 200% text, keyboard avoidance, Android back behavior, 320px widths, safe areas, dark-mode contrast measurement, screen rotation, offline startup, disconnect during set sync, low-memory restart, device clock changes and sign-out with pending logs. This has not been performed in this environment.
+
+## Shared learning controls
+
+Settings includes a separate Help improve training card. Contribution starts off. The card explains which data is used, presents an accessible switch, shows eligible and review-pending counts, and distinguishes rules, shadow evaluation and reviewed live assistance. Withdrawing asks for confirmation because it deletes learning examples and retires affected models; it does not delete workout history. Changes are confirmed by the server; failed/offline changes show an error and are not presented as saved.
+
+Expandable details show how training works and the current user's account ID for historical import. Training is an operator workflow rather than a global control exposed to ordinary users. No fabricated accuracy, "learning" animation or trained-model claim is shown before a candidate exists. Existing advanced workout reasoning shows model version, predicted RPE at the original load and any bounded adjustment.
+
+## Contribute tab
+
+The new primary tab follows Check-in → Exercise and sets → Review and send. Choice controls have explicit radio labels, selected state, scalable text and 48px minimum targets. Unknown answers are first-class options. Stepper controls supplement direct number entry. The exercise picker shows name and equipment; no identifier is exposed to participants. Copy-last-set resets actual effort and pain. The receipt translates completeness reasons into plain language and makes reviewed/awaiting-review states visible.
+
+A contribution can include one exercise with multiple sets. Add another exercise preserves the workout grouping and check-in. Optional context/plan details explain why a record may not be model-ready. Enjoyment/duration are collected as optional observations, not claimed as trained model inputs. The owner dashboard is currently CLI based. Native screen-reader, keyboard, large-text and device walkthrough checks remain required before public distribution.
+
+Ordinary workout logging also gains reps/load steppers and explicit actual-effort selection. Onboarding asks users to choose their experience rather than assigning beginner status silently.

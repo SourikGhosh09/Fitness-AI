@@ -12,6 +12,7 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: backend/requirements.lock
+      - run: python scripts/prepare_assets.py
       - run: pip install -r backend/requirements.lock
       - run: python -m pytest -q
         working-directory: backend
@@ -36,6 +37,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - run: python scripts/prepare_assets.py
       - run: pip install -r backend/requirements.lock
       - run: python -m fitness.setup
         working-directory: backend
@@ -51,6 +53,8 @@ jobs:
       - run: npm ci
         working-directory: apps/mobile
       - run: npm run test:media
+        working-directory: apps/mobile
+      - run: npm run test:contribution
         working-directory: apps/mobile
       - run: npm run typecheck
         working-directory: apps/mobile

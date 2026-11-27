@@ -52,3 +52,20 @@ Split capability assessments into assessment_runs, assessment_metrics, metric_de
 Add exercise_muscles with primary/secondary contribution, vocabulary tables for muscles/equipment/patterns, metadata_revisions and reviewer/evidence tables. Expand nutrition with foods, allergens, food_allergens, meal_items, intake and target history. Add wearable consent/connections/measurements with provider-event uniqueness and normalized units; camera consent/session/derived_metrics without raw video by default. Add challenge_memberships and user_achievements, notification delivery attempts and outbox events for reliable jobs.
 
 These are explicitly pending migrations, not claimed live tables. Avoid silently treating a JSON placeholder as a completed production domain.
+
+## Neural training tables (migration 0004)
+
+- learning_consent: one opt-in state and rotating consent grant per owner.
+- learning_examples: owner/event uniqueness, source, quality state, validated feature/outcome JSON and payload hash.
+- learning_models: numeric model artifact, evaluation and split lineage, dataset hash, review and lifecycle state.
+- learning_members: model/user/grant lineage for training and evaluation participants; unique model/user pair.
+- learning_deployment: constrained global pointer and shadow/live mode. Invalidated models are never served.
+
+Model weights are intentionally stored in the database to keep backup and promotion transactional. Full source snapshots are not copied into each model; model reports retain sample IDs and a dataset hash. Backup files are private operational artifacts, excluded from source control.
+
+## Guided source observations (migration 0005)
+
+`user_contributions`: owner FK; exercise FK; unique owner/event; unique owner/session/exercise; occurred_at and created_at; current consent grant; payload hash; pending/reviewed state; original nullable answers; frozen historical features; completeness report and review provenance. These source records are separate from fully validated neural examples. Collection exports are private pseudonymous operational data, not part of the exercise knowledge-base ZIP.
+
+
+Survey bridge migration 0006 adds `survey_participants` (hashed private codes and revocation), `survey_responses` (revision/checksum and contribution linkage, no duplicate raw response payload) and short-lived `survey_receipts` (replay prevention). Participant rows reference isolated pseudonymous user identities. Corrections invalidate influenced models and regenerate derived history; withdrawal clears contributions and revokes the participant link.
