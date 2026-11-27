@@ -17,6 +17,9 @@
 - [ ] P2-009 — Native-device offline/accessibility validation.
 - [ ] P2-010 — Hosted PostgreSQL/deployment validation and operational hardening.
 
+- [x] P2-011 — Advanced workout logbook with dates, per-set logging and timers (see `docs/DECISIONS/004-workout-logbook.md`).
+  - Tests: `backend/tests/test_workout_logbook.py`, `apps/mobile/tests/workout-log.test.cjs`; device validation remains under P2-009.
+
 ### Release hygiene
 - [x] REL-031 — Make the authoritative application the release ZIP root and remove duplicate legacy tree
   - Acceptance: `CHANGELOG.md`, `HANDOVER.md`, `TASKS.md`, `AGENTS.md`, `README.md`, `SECURITY.md`, and `docs/` are directly visible from the extracted project root.

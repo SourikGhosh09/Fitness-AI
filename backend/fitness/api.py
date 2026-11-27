@@ -6,7 +6,7 @@ from fastapi import FastAPI,Header,HTTPException,Request,Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select,insert,update,delete,func
 from sqlalchemy.exc import IntegrityError
-from . import db,security,engine,weekly,tutorials,learning,contributions,knowledge,survey,notion_sync
+from . import db,security,engine,weekly,tutorials,learning,contributions,knowledge,survey,notion_sync,logbook
 from .contracts import *
 from .learning_contracts import LearningConsent,TrainingBatch
 
@@ -290,6 +290,89 @@ def create_app(database=None):
                 c.execute(insert(db.decisions).values(user_id=u,workout_id=workout_id,engine_version=engine.VERSION,data={'reason':data.reason,'replacement':target}))
                 return {'id':workout_id,**plan}
         except engine.SafetyStop as e:raise HTTPException(409,str(e))
+    def log_day(day):
+        try:return logbook.parse_day(day) and day
+        except ValueError as e:raise HTTPException(422,str(e))
+    def log_view(c,u,row,with_previous=True):
+        out={'date':row['day'],'version':row['version'],'updated_at':row['updated_at'],**row['data']}
+        if with_previous:
+            ids={e.get('exercise_id') for e in row['data'].get('exercises',[]) if e.get('exercise_id')}
+            previous={}
+            if ids:
+                older=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day<row['day']).order_by(db.workout_logs.c.day.desc()).limit(120)).mappings()
+                for old in older:
+                    for e in old['data'].get('exercises',[]):
+                        i=e.get('exercise_id')
+                        done=[x for x in e.get('sets',[]) if x.get('done')]
+                        if i in ids and i not in previous and done:previous[i]={'date':old['day'],'sets':[{'kind':x.get('kind','reps'),'weight_kg':x.get('weight_kg'),'reps':x.get('reps')} for x in done]}
+                    if len(previous)==len(ids):break
+            out['previous']=previous
+        return out
+    @app.get('/api/v1/logs')
+    def log_range(start:str|None=None,end:str|None=None,authorization:str|None=Header(default=None)):
+        with database.connect() as c:
+            u=auth(c,authorization,'read')['user_id']
+            try:
+                if start is None and end is None:start,end=logbook.week_bounds(datetime.now(ZoneInfo(profile(c,u).timezone)).date().isoformat())
+                elif start is None or end is None:raise ValueError('start and end must be provided together')
+                a,b=logbook.parse_day(start),logbook.parse_day(end)
+                if b<a or (b-a).days>92:raise ValueError('Choose a range of at most 93 days')
+            except ValueError as e:raise HTTPException(422,str(e))
+            rows=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day>=start,db.workout_logs.c.day<=end).order_by(db.workout_logs.c.day)).mappings()
+            return {'start':start,'end':end,'logs':[logbook.summarize(r) for r in rows]}
+    @app.get('/api/v1/logs/{day}')
+    def log_get(day:str,authorization:str|None=Header(default=None)):
+        log_day(day)
+        with database.connect() as c:
+            u=auth(c,authorization,'read')['user_id']
+            row=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day)).mappings().first()
+            if not row:raise HTTPException(404,'No workout log for this date')
+            return log_view(c,u,row)
+    @app.put('/api/v1/logs/{day}')
+    def log_put(day:str,data:logbook.LogSession,authorization:str|None=Header(default=None)):
+        log_day(day)
+        known={e.exercise_id for e in data.exercises if e.exercise_id}
+        try:
+            with database.begin() as c:
+                u=auth(c,authorization,'train')['user_id']
+                if known and c.execute(select(func.count()).select_from(db.exercises).where(db.exercises.c.id.in_(known))).scalar_one()!=len(known):raise HTTPException(422,'Unknown exercise in log')
+                row=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day).with_for_update()).mappings().first()
+                payload=logbook.data_of(data)
+                if row is None:
+                    if data.version!=0:raise HTTPException(409,'This log no longer exists. Reload before saving.')
+                    c.execute(insert(db.workout_logs).values(id=db.uid(),user_id=u,day=day,version=1,data=payload,updated_at=time.time()))
+                else:
+                    if data.version!=row['version']:raise HTTPException(409,'This log changed on another device. Reload before saving.')
+                    c.execute(update(db.workout_logs).where(db.workout_logs.c.id==row['id']).values(version=row['version']+1,data=payload,updated_at=time.time()))
+                c.execute(insert(db.audit).values(user_id=u,action='workout_log:'+('create' if row is None else 'update'),resource_id=day))
+                fresh=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day)).mappings().one()
+                return log_view(c,u,fresh,False)
+        except IntegrityError:raise HTTPException(409,'This log changed on another device. Reload before saving.')
+    @app.delete('/api/v1/logs/{day}',status_code=204)
+    def log_delete(day:str,authorization:str|None=Header(default=None)):
+        log_day(day)
+        with database.begin() as c:
+            u=auth(c,authorization,'train')['user_id']
+            if not c.execute(delete(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day)).rowcount:raise HTTPException(404,'No workout log for this date')
+            c.execute(insert(db.audit).values(user_id=u,action='workout_log:delete',resource_id=day))
+    @app.post('/api/v1/logs/{day}/from-plan',status_code=201)
+    def log_from_plan(day:str,authorization:str|None=Header(default=None)):
+        log_day(day)
+        with database.begin() as c:
+            u=auth(c,authorization,'train')['user_id']
+            if c.execute(select(db.workout_logs.c.id).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day)).first():raise HTTPException(409,'A log already exists for this date')
+            w=c.execute(select(db.workouts).where(db.workouts.c.user_id==u,db.workouts.c.day==day)).mappings().first()
+            if not w or not (w['plan'] or {}).get('items'):raise HTTPException(404,'No planned training session for this date. Open Today to generate it first.')
+            plan=w['plan'];exercises=[]
+            for i in plan['items']:
+                rep=i.get('reps');rep=rep if isinstance(rep,int) and 0<=rep<=3600 else None
+                load=i.get('load_kg');load=float(load) if isinstance(load,(int,float)) and 0<=load<=1000 else None
+                exercises.append(logbook.LogExercise(exercise_id=i['exercise_id'],name=i['name'][:120],target=f"{i.get('sets')} sets · {i.get('reps')} reps · target RIR {i.get('rir')}"[:200],rest_seconds=min(900,int(i.get('rest_seconds') or 90)),sets=[logbook.LogSet(weight_kg=load,reps=rep) for _ in range(max(1,min(int(i.get('sets') or 1),30)))]))
+            session=logbook.LogSession(title=(((plan.get('session_template') or {}).get('title')) or 'Planned session')[:120],exercises=exercises,warmup=[logbook.LogCheck(text=str(x)[:200]) for x in plan.get('preparation',[])[:30]],cooldown=[logbook.LogCheck(text=str(x)[:200]) for x in plan.get('cooldown',[])[:30]])
+            c.execute(insert(db.workout_logs).values(id=db.uid(),user_id=u,day=day,version=1,data=logbook.data_of(session),updated_at=time.time()))
+            c.execute(insert(db.audit).values(user_id=u,action='workout_log:from_plan',resource_id=day))
+            row=c.execute(select(db.workout_logs).where(db.workout_logs.c.user_id==u,db.workout_logs.c.day==day)).mappings().one()
+            return log_view(c,u,row)
     @app.get('/api/v1/progress')
     def progress(authorization:str|None=Header(default=None)):
         with database.connect() as c:

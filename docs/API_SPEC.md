@@ -6,6 +6,18 @@ Major groups: authentication/profile/readiness, workout generation/retrieval/com
 
 Any endpoint change must update implementation tests and regenerate/check `openapi.json`. Future weekly-plan endpoints must expose schedule state and explanation without allowing clients to bypass safety or forge historical completion.
 
+## Workout logbook endpoints
+
+Free-form dated journal, one entry per owner and `YYYY-MM-DD` date. It never feeds the adaptive engine, `performance_logs`, XP or learning data. Writes require `train`, reads require `read`; the owner always comes from the credential.
+
+- `GET /logs?start=&end=` returns per-day summaries (`status`, `sets_done`, `sets_total`, `volume_kg`). Both bounds or neither (default: current profile-timezone week); at most 93 days.
+- `GET /logs/{date}` returns the entry, its `version`, and `previous` (last completed sets for each catalog exercise). 404 when absent, 422 for a malformed date.
+- `PUT /logs/{date}` upserts. Send `version` 0 to create, or the version you loaded; a mismatch returns 409. Unknown fields, out-of-range values and unknown `exercise_id` return 422. Timer data is stored as epoch seconds (`started_at`, `ended_at`, `paused_seconds`, per-set `completed_at`); `rest_seconds` is per exercise or per set.
+- `DELETE /logs/{date}` removes the entry.
+- `POST /logs/{date}/from-plan` creates an entry from the already-generated planned workout for that date (404 if none, 409 if a log exists).
+
+Entries are included in `GET /account/export` and deleted with the account.
+
 ## Evolve v0.3.0 endpoints
 
 ### GET `/workouts/week`

@@ -16,7 +16,7 @@ type Tutorial = {
   expires_at: number | null;
 };
 
-export function ExerciseTutorial({exerciseId, name}: {exerciseId:string; name:string}) {
+export function ExerciseTutorial({exerciseId, name, autoStart=false}: {exerciseId:string; name:string; autoStart?:boolean}) {
   const [tutorial, setTutorial] = useState<Tutorial|null>(null);
   const [playing, setPlaying] = useState(false);
   const [mediaSource, setMediaSource] = useState<{uri:string;headers:{Authorization:string}}|null>(null);
@@ -63,6 +63,7 @@ export function ExerciseTutorial({exerciseId, name}: {exerciseId:string; name:st
       if (generation === request.current) setMessage('Could not load the tutorial. Check your connection; written instructions still work.');
     } finally {if (generation === request.current) setBusy(false);}
   }
+  useEffect(() => {if (autoStart) void watch();}, [exerciseId, autoStart]);
   async function openSource() {
     if (!tutorial?.source_page) return;
     try {await Linking.openURL(tutorial.source_page);} catch {setMessage('Could not open GitHub. Try again when connected.');}

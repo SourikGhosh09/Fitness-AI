@@ -15,7 +15,7 @@ uvicorn fitness.api:app --host 0.0.0.0 --port 8000
 
 Setup runs migrations, verifies the supplied assets and exact dataset, imports exercises and records the owner's media authorization. Repeating setup does not duplicate grants or reverse an operator's revocation. Exercise metadata approval remains separate from permission to play a tutorial.
 
-In the mobile app, sign in, open **Library**, search an exercise and tap **Watch tutorial**. The same control appears on each exercise in a generated workout. The GIF plays inside the app; Stop removes it, and Play restarts it. Backgrounding the app stops playback. The original GitHub page remains an optional source link, not a requirement for playback.
+In the **Log** tab, each exercise added from the catalog (or created from the planned session) has **Show tutorial**, which plays its animation in place. In the mobile app, sign in, open **Library**, search an exercise and tap **Watch tutorial**. The same control appears on each exercise in a generated workout. The GIF plays inside the app; Stop removes it, and Play restarts it. Backgrounding the app stops playback. The original GitHub page remains an optional source link, not a requirement for playback.
 
 ## Delivery and credentials
 

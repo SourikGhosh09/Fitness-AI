@@ -9,7 +9,8 @@
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
     "test:media": "tsc src/media-source.ts --ignoreConfig --outDir .test-media --target es2022 --module commonjs --skipLibCheck && node --test tests/media-source.test.cjs",
-    "test:contribution": "tsc src/contribution-form.ts src/storage.ts --ignoreConfig --outDir .test-contribution --target es2022 --module commonjs --skipLibCheck && node --test tests/contribution-form.test.cjs tests/contribution-storage.test.cjs"
+    "test:contribution": "tsc src/contribution-form.ts src/storage.ts --ignoreConfig --outDir .test-contribution --target es2022 --module commonjs --skipLibCheck && node --test tests/contribution-form.test.cjs tests/contribution-storage.test.cjs",
+    "test:log": "tsc src/workout-log.ts --ignoreConfig --outDir .test-log --target es2022 --module commonjs --skipLibCheck && node --test tests/workout-log.test.cjs"
   },
   "dependencies": {
     "expo": "^57.0.34",

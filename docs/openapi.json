@@ -393,6 +393,410 @@
         "title": "LearningConsent",
         "type": "object"
       },
+      "LogCardio": {
+        "additionalProperties": false,
+        "properties": {
+          "activity": {
+            "default": "",
+            "maxLength": 120,
+            "title": "Activity",
+            "type": "string"
+          },
+          "minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "target": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "title": "LogCardio",
+        "type": "object"
+      },
+      "LogCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "done": {
+            "default": false,
+            "title": "Done",
+            "type": "boolean"
+          },
+          "text": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "LogCheck",
+        "type": "object"
+      },
+      "LogExercise": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Baseline",
+            "type": "string"
+          },
+          "exercise_id": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exercise Id"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "default": "",
+            "maxLength": 500,
+            "title": "Notes",
+            "type": "string"
+          },
+          "rest_seconds": {
+            "default": 90,
+            "maximum": 900.0,
+            "minimum": 0.0,
+            "title": "Rest Seconds",
+            "type": "integer"
+          },
+          "sets": {
+            "items": {
+              "$ref": "#/components/schemas/LogSet"
+            },
+            "maxItems": 30,
+            "title": "Sets",
+            "type": "array"
+          },
+          "target": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "LogExercise",
+        "type": "object"
+      },
+      "LogSession": {
+        "additionalProperties": false,
+        "properties": {
+          "body_weight_kg": {
+            "anyOf": [
+              {
+                "maximum": 500.0,
+                "minimum": 20.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Weight Kg"
+          },
+          "cardio": {
+            "$ref": "#/components/schemas/LogCardio"
+          },
+          "cooldown": {
+            "items": {
+              "$ref": "#/components/schemas/LogCheck"
+            },
+            "maxItems": 30,
+            "title": "Cooldown",
+            "type": "array"
+          },
+          "difficulty": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "energy": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energy"
+          },
+          "exercises": {
+            "items": {
+              "$ref": "#/components/schemas/LogExercise"
+            },
+            "maxItems": 40,
+            "title": "Exercises",
+            "type": "array"
+          },
+          "notes": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Notes",
+            "type": "string"
+          },
+          "pain_post": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pain Post"
+          },
+          "pain_pre": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pain Pre"
+          },
+          "paused_seconds": {
+            "default": 0,
+            "maximum": 86400.0,
+            "minimum": 0.0,
+            "title": "Paused Seconds",
+            "type": "integer"
+          },
+          "sleep_hours": {
+            "anyOf": [
+              {
+                "maximum": 24.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sleep Hours"
+          },
+          "soreness_post": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soreness Post"
+          },
+          "soreness_pre": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Soreness Pre"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "default": "planned",
+            "enum": [
+              "planned",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "stretch": {
+            "items": {
+              "$ref": "#/components/schemas/LogCheck"
+            },
+            "maxItems": 30,
+            "title": "Stretch",
+            "type": "array"
+          },
+          "technique": {
+            "default": "",
+            "maxLength": 200,
+            "title": "Technique",
+            "type": "string"
+          },
+          "title": {
+            "default": "Workout",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Version",
+            "type": "integer"
+          },
+          "warmup": {
+            "items": {
+              "$ref": "#/components/schemas/LogCheck"
+            },
+            "maxItems": 30,
+            "title": "Warmup",
+            "type": "array"
+          }
+        },
+        "title": "LogSession",
+        "type": "object"
+      },
+      "LogSet": {
+        "additionalProperties": false,
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "done": {
+            "default": false,
+            "title": "Done",
+            "type": "boolean"
+          },
+          "kind": {
+            "default": "reps",
+            "enum": [
+              "reps",
+              "seconds"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reps": {
+            "anyOf": [
+              {
+                "maximum": 3600.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reps"
+          },
+          "rest_seconds": {
+            "anyOf": [
+              {
+                "maximum": 3600.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rest Seconds"
+          },
+          "rir": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rir"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "maximum": 1000.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          }
+        },
+        "title": "LogSet",
+        "type": "object"
+      },
       "NutritionInput": {
         "additionalProperties": false,
         "properties": {
@@ -1093,7 +1497,7 @@
   "info": {
     "description": "Experimental adaptive training API. See release gates before real-world use.",
     "title": "Adaptive Fitness OS",
-    "version": "0.3.0"
+    "version": "0.3.1"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2337,6 +2741,295 @@
           }
         },
         "summary": "Learning Status"
+      }
+    },
+    "/api/v1/logs": {
+      "get": {
+        "operationId": "log_range_api_v1_logs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log Range"
+      }
+    },
+    "/api/v1/logs/{day}": {
+      "delete": {
+        "operationId": "log_delete_api_v1_logs__day__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log Delete"
+      },
+      "get": {
+        "operationId": "log_get_api_v1_logs__day__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log Get"
+      },
+      "put": {
+        "operationId": "log_put_api_v1_logs__day__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogSession"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log Put"
+      }
+    },
+    "/api/v1/logs/{day}/from-plan": {
+      "post": {
+        "operationId": "log_from_plan_api_v1_logs__day__from_plan_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "title": "Day",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log From Plan"
       }
     },
     "/api/v1/nutrition/target": {
