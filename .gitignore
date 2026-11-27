@@ -27,6 +27,7 @@ training-private/
 *.sqlite-*
 
 .test-contribution/
+.test-log/
 .vercel/
 
 # Reproducible assets restored by scripts/prepare_assets.py

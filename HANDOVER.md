@@ -8,6 +8,9 @@ The v0.3.1 patch corrected the release-package structure: maintained control fil
 
 Evolve added `backend/fitness/weekly.py`, `weekly-0.3.0`, and upgraded the session engine to `rules-0.3.0`. The app now derives a Monday–Sunday plan from selected training days and durable history, assigns frequency-aware session templates, carries tracked missed sequence slots forward, protects brand-new users from fabricated misses, exposes completed-history recovery recency, and feeds the assigned movement-pattern intent into Today generation. The mobile Plan screen renders the week; onboarding/Profile can edit training days. Active unstarted workouts can be regenerated for bounded reasons, with workout versioning and recommendation-decision audit.
 
+## Workout logbook (added after v0.3.1)
+`backend/fitness/logbook.py` + `workout_logs` table (migration 0008) hold a free-form dated journal, one entry per owner and local date, separate from the engine's immutable `performance_logs`. The mobile Log tab is `apps/mobile/src/WorkoutLog.tsx` with pure helpers in `workout-log.ts` (`npm run test:log`). Timers are clock-based (stored epoch seconds), so backgrounding does not drift them; no OS notification is scheduled when the app is closed. Tutorials reuse `ExerciseTutorial` (new `autoStart` prop) for exercises that carry a catalog `exercise_id`; custom exercises have none. Not yet validated on a physical device.
+
 ## Validation
 Focused Evolve + Phase 2 + system tests: **45 passed**. Prepared full backend suite: **146 passed, 3 environment failures** because the optional PostgreSQL `psycopg` driver is not installed in this execution container. The source ZIP does not include installed mobile `node_modules`, so complete Expo/React Native typecheck/native-device validation is still open.
 

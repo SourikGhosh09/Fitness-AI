@@ -15,6 +15,7 @@
 | Volume / fatigue / deload | Phase 2 increment: trailing 7-day set-equivalent guardrails, distinct-workout fatigue aggregation, and conservative deload scaling; individualized validated volume targets remain pending |
 | Weekly split/frequency | **Evolve implemented**: 1–7 availability days, supported split templates, tracked miss carry-forward, day-specific pattern intent, derived recovery recency; not a validated periodization system |
 | Periodization | Domain/schema foundation; full macro/meso/microcycle programming pending |
+| Workout logbook | Dated per-set journal with timers, separate from adaptive history. Implemented and API-tested; device validation pending. |
 | Substitution | Same-pattern reviewed alternative; pain/discomfort pause; pre-logging only. Whole-session regeneration now supported before logging for bounded reasons. |
 | Feedback / history | Guided contribution wizard, optional check-ins, actual effort, copy-set controls, unknown answers, enjoyment/duration, private history, draft/retry behavior and operator review; body-composition UI pending |
 | Nutrition | Optional approximate macros based on supplied maintenance estimate; trends, hydration and meals pending |

@@ -42,6 +42,9 @@ Index('ix_learning_eligible',learning_examples.c.user_id,learning_examples.c.qua
 contributions=table('user_contributions',owner(),Column('event_id',String(80),nullable=False),Column('session_id',String(80),nullable=False),Column('exercise_id',String(80),ForeignKey('exercises.id'),nullable=False),Column('occurred_at',Float,nullable=False),Column('grant_token',String(80),nullable=False),Column('payload_hash',String(64),nullable=False),Column('status',String(20),nullable=False),Column('data',JSON,nullable=False),Column('history_snapshot',JSON),Column('report',JSON,nullable=False),Column('review',JSON,nullable=False),stamp(),UniqueConstraint('user_id','event_id'),UniqueConstraint('user_id','session_id','exercise_id'),CheckConstraint("status IN ('pending','reviewed')"))
 Index('ix_contributions_user_time',contributions.c.user_id,contributions.c.occurred_at)
 
+# Free-form dated workout journal (one entry per owner and local date). Not fed to the adaptive engine.
+workout_logs=table('workout_logs',owner(),Column('day',String(10),nullable=False),Column('version',Integer,nullable=False,default=1),Column('data',JSON,nullable=False),stamp(),Column('updated_at',Float,nullable=False,default=time.time),UniqueConstraint('user_id','day'))
+
 def make_engine(url=None):
     serverless=os.getenv('VERCEL')=='1'
     url=url or os.getenv('DATABASE_URL')

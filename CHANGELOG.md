@@ -3,10 +3,14 @@
 ## Unreleased
 
 ### Added
+- Workout logbook: dated per-set journal (`workout_logs`, migration 0008) with `GET/PUT/DELETE /logs/{date}`, `GET /logs?start&end`, `POST /logs/{date}/from-plan`, optimistic versioning, previous-performance hints and weekly summaries.
+- Mobile **Log** tab: Monday-Sunday date strip and jump-to-date, per-set weight/reps/RIR, session stopwatch with pause, clock-based rest timer, timed-set countdown, warm-up/stretch/cooldown checklists, conditioning, review fields, share-as-text, on-device draft with retry, and each catalog exercise's animated tutorial inline.
+- `npm run test:log` and logbook API tests.
 ### Changed
 ### Fixed
 ### Removed
 ### Security
+- The logbook is owner-scoped, `train`/`read` scoped, bounded, and never feeds the adaptive engine, immutable `performance_logs`, XP or learning data.
 
 ## 0.3.1 — Evolve
 
