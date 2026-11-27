@@ -9,18 +9,22 @@
 | Safety | Deterministic fail-closed core for reported pain, restrictions, metadata and equipment; not medically validated |
 | Explainable ranking | Implemented heuristic scoring with saved reasoning |
 | Movement model | Initial resistance patterns; comprehensive sport/cardio/mobility model pending |
-| Full workout phases | Preparation, training and cooldown instructions; dedicated activation/dynamic mobility/conditioning engines pending |
-| Load / RPE / RIR | Implemented initial conservative prescriptions |
-| Progression strategies | Small load change after three sessions; other strategies metadata/design only |
-| Volume / fatigue / deload | Readiness and workload heuristics; weekly caps, longitudinal fatigue and complete deload logic pending |
+| Full workout phases | Preparation, training and cooldown instructions; **Evolve day-specific weekly session intent implemented**; dedicated activation/dynamic mobility/conditioning engines pending |
+| Load / RPE / RIR | Phase 2 increment implemented: goal-aware rep ranges, readiness-bounded RPE/RIR, and exercise-specific load/rep adaptation |
+| Progression strategies | Phase 2 increment: three-session double progression (reps before load), difficult-session regression, readiness holds; tempo/ROM/density strategies remain pending |
+| Volume / fatigue / deload | Phase 2 increment: trailing 7-day set-equivalent guardrails, distinct-workout fatigue aggregation, and conservative deload scaling; individualized validated volume targets remain pending |
+| Weekly split/frequency | **Evolve implemented**: 1–7 availability days, supported split templates, tracked miss carry-forward, day-specific pattern intent, derived recovery recency; not a validated periodization system |
 | Periodization | Domain/schema foundation; full macro/meso/microcycle programming pending |
-| Substitution | Same-pattern reviewed alternative; pain/discomfort pause; pre-logging only |
-| Feedback / history | Sets, loads, RPE, skips, pain; enjoyment/duration/body-composition tracking UI pending |
+| Substitution | Same-pattern reviewed alternative; pain/discomfort pause; pre-logging only. Whole-session regeneration now supported before logging for bounded reasons. |
+| Feedback / history | Guided contribution wizard, optional check-ins, actual effort, copy-set controls, unknown answers, enjoyment/duration, private history, draft/retry behavior and operator review; body-composition UI pending |
 | Nutrition | Optional approximate macros based on supplied maintenance estimate; trends, hydration and meals pending |
 | Wearables | Explicitly unavailable; architecture only |
 | Camera | Explicitly unavailable; no permission requested; architecture only |
-| LLM | Not connected; rule-based explanations only |
-| Personalization ML | Not trained; deterministic historical adherence/progression only |
+| Exercise knowledge | Trained source-only 64-unit name classifier, 19 sourced target categories, muscle-function references, goal-priority ordering and read-only explanations; 70.9% held-out source-label accuracy, experimental, not clinically validated |
+| LLM | Not connected; bounded rule-based and sourced knowledge answers |
+| Personalization ML | Actual 32/16-unit CPU neural network, consent-aware collection, reviewed CSV ingestion, train/evaluate/registry and bounded inference implemented; no real-user-trained or clinically validated model included |
+| Google survey bridge | Native Apps Script installer, private links, signed revision-aware synchronization and automatic validation/training/shadow promotion implemented; Google account activation and public backend still required |
+| Data/model backups | SQLite snapshot/verified quarantine restore implemented and tested; hosted PostgreSQL backup/PITR and encryption configuration pending |
 | Gamification | One-time XP, levels, recovery reward; avatars/base/challenges pending |
 | Mobile | Expo source, type checking, bundle validation; no device-tested signed binaries |
 | Offline | Persistent cache/outbox + deduplication; native QA and conflict-resolution editor pending |
@@ -32,3 +36,9 @@
 | Repository / deployment | Target repository exists; source upload rejected by GitHub with HTTP 403; latest package saved locally; not deployed |
 
 These gaps are production blockers or remaining scope, not silently completed features. This delivery is a substantive starting implementation, not the requested complete production-grade fitness operating system.
+
+## Notion collection addition (2026-09-15)
+
+Implemented: native opt-in/status screen, session-authenticated consent API, Notion-to-backend polling, pagination/retries, normalized deduplication, corrections, review gating, model invalidation, withdrawal cleanup queue, migration 0007, Compose worker profile, and restore quarantine.
+
+Not activated: live server-side Notion credential, hosted worker and database, connected real-device test. Native-app-to-Notion export, public Notion respondent form, and automatic approval/promotion are not part of this addition. See integrations/notion/README.md.

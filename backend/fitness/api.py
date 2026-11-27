@@ -2,16 +2,17 @@ import json,time,hashlib,threading
 from collections import defaultdict,deque
 from datetime import datetime,timezone
 from zoneinfo import ZoneInfo
-from fastapi import FastAPI,Header,HTTPException,Request
+from fastapi import FastAPI,Header,HTTPException,Request,Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select,insert,update,delete,func
 from sqlalchemy.exc import IntegrityError
-from . import db,security,engine,tutorials
+from . import db,security,engine,weekly,tutorials,learning,contributions,knowledge,survey,notion_sync
 from .contracts import *
+from .learning_contracts import LearningConsent,TrainingBatch
 
 def create_app(database=None):
     database=database or db.make_engine()
-    app=FastAPI(title='Adaptive Fitness OS',version='0.1.0',description='Experimental adaptive training API. See release gates before real-world use.')
+    app=FastAPI(title='Adaptive Fitness OS',version='0.3.1',description='Experimental adaptive training API. See release gates before real-world use.')
     app.state.database=database
     import os
     origins=[x for x in os.getenv('CORS_ORIGINS','').split(',') if x]
@@ -48,27 +49,46 @@ def create_app(database=None):
         rows=c.execute(select(db.exercises,db.exercise_metadata.c.data.label('metadata'),db.exercise_metadata.c.status.label('review_status')).join(db.exercise_metadata,db.exercises.c.id==db.exercise_metadata.c.exercise_id)).mappings()
         return [dict(r) for r in rows]
     def history(c,u):
-        rows=c.execute(select(db.logs,db.workouts.c.plan.label('prescription')).join(db.workouts,db.logs.c.workout_id==db.workouts.c.id).where(db.logs.c.user_id==u,db.workouts.c.status=='completed').order_by(db.logs.c.created_at)).mappings();groups={}
+        rows=c.execute(select(db.logs,db.workouts.c.plan.label('prescription'),db.workouts.c.day.label('workout_day')).join(db.workouts,db.logs.c.workout_id==db.workouts.c.id).where(db.logs.c.user_id==u,db.workouts.c.status=='completed').order_by(db.logs.c.created_at)).mappings();groups={}
         for r in rows:
-            target=next((i['reps'] for i in r['prescription']['items'] if i['exercise_id']==r['exercise_id']),None)
-            value={**r['data'],'target_reps':target}
-            groups.setdefault(r['exercise_id'],{}).setdefault(r['workout_id'],[]).append(value)
+            item=next((i for i in r['prescription']['items'] if i['exercise_id']==r['exercise_id']),None)
+            target=item.get('reps') if item else None
+            value={**r['data'],'target_reps':target,'target_sets':item.get('sets') if item else None,'primary_muscles':item.get('primary_muscles',[]) if item else [],'secondary_muscles':item.get('secondary_muscles',[]) if item else []}
+            session=groups.setdefault(r['exercise_id'],{}).setdefault(r['workout_id'],{'day':r['workout_day'],'values':[]})
+            session['values'].append(value)
         out={}
         for e,sessions in groups.items():
-            summaries=[];last=None
-            for values in sessions.values():
-                summaries.append({'rpe':sum(v['rpe'] for v in values)/len(values),'missed':any(v['skipped'] or v['target_reps'] is None or v['reps']<v['target_reps'] for v in values)})
-                last=values[-1]['load_kg']
-            out[e]={'sessions':summaries,'last_load':last,'adherence':sum(not s['missed'] for s in summaries)/len(summaries)}
+            summaries=[];last=None;primary=[];secondary=[]
+            for workout_id,session in sessions.items():
+                values=session['values'];performed=[v for v in values if not v['skipped'] and v['rpe'] is not None]
+                primary=values[-1].get('primary_muscles',primary);secondary=values[-1].get('secondary_muscles',secondary)
+                summary={'workout_id':workout_id,'day':session['day'],'rpe':sum(v['rpe'] for v in performed)/len(performed) if performed else None,
+                         'missed':any(v['skipped'] or v['target_reps'] is None or v['reps']<v['target_reps'] for v in values),
+                         'completed_sets':sum(not v['skipped'] for v in values),'target_sets':values[-1].get('target_sets'),
+                         'target_reps':values[-1].get('target_reps'),'avg_reps':round(sum(v['reps'] for v in performed)/len(performed),2) if performed else None,
+                         'min_reps':min((v['reps'] for v in performed),default=None),'primary_muscles':primary,'secondary_muscles':secondary}
+                summaries.append(summary)
+                if performed:last=performed[-1]['load_kg']
+            out[e]={'sessions':summaries,'last_load':last,'adherence':sum(not s['missed'] for s in summaries)/len(summaries),'primary_muscles':primary,'secondary_muscles':secondary}
         return out
     def owned_workout(c,u,w):
         row=c.execute(select(db.workouts).where(db.workouts.c.id==w,db.workouts.c.user_id==u).with_for_update()).mappings().first()
         if not row:raise HTTPException(404,'Workout not found')
         return row
+    def recent_workouts(c,u,limit=40):
+        return [dict(r) for r in c.execute(select(db.workouts).where(db.workouts.c.user_id==u).order_by(db.workouts.c.day.desc()).limit(limit)).mappings()]
+    @app.post('/api/v1/survey/enroll')
+    async def survey_enroll(request:Request):return await survey.endpoint(request,database,'enroll')
+    @app.post('/api/v1/survey/events')
+    async def survey_events(request:Request):return await survey.endpoint(request,database,'events')
+    @app.post('/api/v1/survey/catalog')
+    async def survey_catalog(request:Request):return await survey.endpoint(request,database,'catalog')
+    @app.post('/api/v1/survey/status')
+    async def survey_status(request:Request):return await survey.endpoint(request,database,'status')
     @app.get('/healthz')
     def health():
         with database.connect() as c:c.execute(select(1))
-        return {'status':'ok','version':'0.1.0'}
+        return {'status':'ok','version':'0.3.1'}
     @app.post('/api/v1/auth/register',status_code=201)
     def register(data:Credentials):
         try:
@@ -162,13 +182,35 @@ def create_app(database=None):
                     if old['status']=='planned' and engine.readiness_score(r)<old['plan'].get('readiness',0)-15:
                         raise HTTPException(409,'Readiness has dropped. Pause and review this saved plan before training.')
                     return {'id':old['id'],'status':old['status'],**old['plan']}
-                if local_now.weekday() not in p.days:
-                    plan={'kind':'recovery','readiness':engine.readiness_score(r),'minutes':0,'items':[],'preparation':[],'cooldown':['Planned rest day. Recovery supports progress.'],'engine_version':engine.VERSION}
-                else:plan=engine.plan(p,r,catalog(c),history(c,u))
+                past=history(c,u);recent=recent_workouts(c,u)
+                week_plan=weekly.build_week(p,past,recent,day)
+                day_context=next((d for d in week_plan['days'] if d['date']==day),None)
+                template=day_context.get('template') if day_context and day_context.get('scheduled') else None
+                if template is None:
+                    plan={'kind':'recovery','readiness':engine.readiness_score(r),'minutes':0,'items':[],'preparation':[],'cooldown':['Planned rest day. Recovery supports progress.'],'engine_version':engine.VERSION,'session_template':None,'programming':{'policy':engine.VERSION,'weekly_policy':weekly.VERSION,'scheduled':False},'reason':'This date is outside your selected training days.'}
+                else:
+                    plan=engine.plan(p,r,catalog(c),past,day,patterns=template['patterns'],session_template=template)
+                    plan['programming']['weekly_policy']=weekly.VERSION
+                    learning.annotate_plan(c,u,plan,p,r,past,catalog(c))
+                plan['schedule_context']=day_context
                 w=db.uid();c.execute(insert(db.workouts).values(id=w,user_id=u,day=day,status='planned',plan=plan))
                 c.execute(insert(db.decisions).values(user_id=u,workout_id=w,engine_version=engine.VERSION,data=plan))
                 return {'id':w,'status':'planned',**plan}
         except engine.SafetyStop as e:raise HTTPException(409,str(e))
+    @app.get('/api/v1/workouts/week')
+    def week(day:str|None=None,authorization:str|None=Header(default=None)):
+        with database.connect() as c:
+            u=auth(c,authorization,'read')['user_id'];p=profile(c,u)
+            local_now=datetime.now(ZoneInfo(p.timezone))
+            anchor=day or local_now.date().isoformat()
+            try:datetime.strptime(anchor,'%Y-%m-%d')
+            except ValueError:raise HTTPException(422,'day must be an ISO date in YYYY-MM-DD format')
+            past=history(c,u);result=weekly.build_week(p,past,recent_workouts(c,u),anchor)
+            latest=c.execute(select(db.readiness).where(db.readiness.c.user_id==u).order_by(db.readiness.c.created_at.desc())).mappings().first()
+            result['current_readiness']=engine.readiness_score(Readiness(**latest['data'])) if latest and time.time()-latest['created_at']<=18*3600 else None
+            result['engine_version']=engine.VERSION
+            return result
+
     @app.get('/api/v1/workouts/recent')
     def recent(authorization:str|None=Header(default=None)):
         with database.connect() as c:
@@ -202,8 +244,29 @@ def create_app(database=None):
             count=c.execute(select(func.count()).select_from(db.logs).where(db.logs.c.workout_id==workout_id)).scalar_one()
             if count!=sum(i['sets'] for i in w['plan']['items']):raise HTTPException(409,'Log or explicitly skip each prescribed set first')
             c.execute(update(db.workouts).where(db.workouts.c.id==workout_id).values(status='completed'))
+            collected=learning.collect_completed(c,u,w)
             if profile(c,u).gamification:c.execute(insert(db.xp).values(user_id=u,event='workout:'+workout_id,amount=50 if w['plan']['kind']=='recovery' else 200))
-            return {'status':'completed','duplicate':False}
+            return {'status':'completed','duplicate':False,'learning_examples_collected':collected}
+    @app.post('/api/v1/workouts/{workout_id}/regenerate')
+    def regenerate(workout_id:str,data:RegenerateWorkout,authorization:str|None=Header(default=None)):
+        try:
+            with database.begin() as c:
+                u=auth(c,authorization,'train')['user_id'];w=owned_workout(c,u,workout_id)
+                if w['status']!='planned':raise HTTPException(409,'Only an active planned workout can be regenerated')
+                if c.execute(select(func.count()).select_from(db.logs).where(db.logs.c.workout_id==workout_id)).scalar_one():raise HTTPException(409,'Regenerate before logging starts; use exercise replacement after reviewing a started session')
+                p=profile(c,u);r=ready(c,u);past=history(c,u);recent=recent_workouts(c,u)
+                template=(w['plan'] or {}).get('session_template') or weekly.session_for_day(p,past,recent,w['day'])
+                if template is None:raise HTTPException(409,'Rest days are not regenerated into training days')
+                effective=p.model_copy(update={'minutes':max(15,p.minutes-15)}) if data.reason=='time' else p
+                exclude={i['exercise_id'] for i in (w['plan'] or {}).get('items',[])} if data.reason in {'variety','equipment'} else set()
+                plan=engine.plan(effective,r,catalog(c),past,w['day'],patterns=template['patterns'],session_template=template,exclude_exercise_ids=exclude,conservative=data.reason=='fatigue')
+                plan['programming']['weekly_policy']=weekly.VERSION;plan['programming']['regenerated_for']=data.reason
+                learning.annotate_plan(c,u,plan,p,r,past,catalog(c))
+                c.execute(update(db.workouts).where(db.workouts.c.id==workout_id).values(plan=plan,version=w['version']+1))
+                c.execute(insert(db.decisions).values(user_id=u,workout_id=workout_id,engine_version=engine.VERSION,data={'event':'regenerate','reason':data.reason,'plan':plan}))
+                return {'id':workout_id,'status':'planned','version':w['version']+1,**plan}
+        except engine.SafetyStop as e:raise HTTPException(409,str(e))
+
     @app.post('/api/v1/workouts/{workout_id}/substitute')
     def substitute(workout_id:str,data:Substitute,authorization:str|None=Header(default=None)):
         try:
@@ -220,8 +283,9 @@ def create_app(database=None):
                 used={i['exercise_id'] for i in items}
                 choices=engine.rank(p,r,[e for e in catalog(c) if e['id'] not in used],target['pattern'])
                 if not choices:raise HTTPException(409,'No approved compatible alternative')
-                e=choices[0];target.update(exercise_id=e['id'],name=e['name'],load_kg=None,instructions=e['data']['instruction_steps'].get('en',[]),reasoning=e['reasoning'],primary_muscles=[e['data']['target']],secondary_muscles=e['data'].get('secondary_muscles',[]))
+                e=choices[0];target['order_reason']={'policy':'substitution-preserve-slot-1','reason':'Reviewed replacement retains the original movement slot; prior exercise-specific ordering scores are discarded.'};target.pop('learning_input',None);target.update(exercise_id=e['id'],name=e['name'],load_kg=None,instructions=e['data']['instruction_steps'].get('en',[]),reasoning=e['reasoning'],primary_muscles=[e['data']['target']],secondary_muscles=e['data'].get('secondary_muscles',[]))
                 plan['items']=items;plan['preparation']=['3 minutes of easy movement.']+[f"Rehearse {i['name']} and perform easy ramp-up sets." for i in items]
+                learning.annotate_plan(c,u,plan,p,r,history(c,u),catalog(c),{target['exercise_id']})
                 c.execute(update(db.workouts).where(db.workouts.c.id==workout_id).values(plan=plan,version=w['version']+1))
                 c.execute(insert(db.decisions).values(user_id=u,workout_id=workout_id,engine_version=engine.VERSION,data={'reason':data.reason,'replacement':target}))
                 return {'id':workout_id,**plan}
@@ -230,7 +294,43 @@ def create_app(database=None):
     def progress(authorization:str|None=Header(default=None)):
         with database.connect() as c:
             u=auth(c,authorization,'read')['user_id'];points=c.execute(select(func.coalesce(func.sum(db.xp.c.amount),0)).where(db.xp.c.user_id==u)).scalar_one()
-            return {'xp':points,'level':1+points//1000,'exercise_history':history(c,u),'model':'deterministic rules; no trained ML model'}
+            past=history(c,u);latest=c.execute(select(db.readiness.c.data).where(db.readiness.c.user_id==u).order_by(db.readiness.c.created_at.desc())).scalar();score=engine.readiness_score(Readiness(**latest)) if latest else 100;return {'xp':points,'level':1+points//1000,'exercise_history':past,'model':learning.status(c,u)['mode'],'adaptive_summary':{'engine_version':engine.VERSION,'recent_fatigue':engine.fatigue_state(past,score),'trailing_7d_workload':engine.weekly_workload(past),'weekly_set_cap':engine.weekly_set_cap(profile(c,u))}}
+    @app.get('/api/v1/integrations/notion')
+    def notion_status(authorization:str|None=Header(default=None)):
+        with database.connect() as c:return notion_sync.status(c,auth(c,authorization,session=True)['user_id'])
+    @app.put('/api/v1/integrations/notion/consent')
+    def notion_consent(data:notion_sync.Consent,authorization:str|None=Header(default=None)):
+        try:
+            with database.begin() as c:return notion_sync.set_consent(c,auth(c,authorization,session=True)['user_id'],data)
+        except ValueError as exc:raise HTTPException(409,str(exc))
+    @app.get('/api/v1/learning/status')
+    def learning_status(authorization:str|None=Header(default=None)):
+        with database.connect() as c:return learning.status(c,auth(c,authorization,'read')['user_id'])
+    @app.post('/api/v1/contributions',status_code=201)
+    def contribute(data:contributions.Contribution,authorization:str|None=Header(default=None)):
+        try:
+            with database.begin() as c:return contributions.submit(c,auth(c,authorization,'train')['user_id'],data)
+        except (ValueError,IntegrityError) as e:raise HTTPException(409,str(e) if isinstance(e,ValueError) else 'This exercise is already saved in this workout; refresh your contributions')
+    @app.get('/api/v1/contributions')
+    def list_contributions(limit:int=20,offset:int=0,authorization:str|None=Header(default=None)):
+        if not 1<=limit<=100 or offset<0:raise HTTPException(422,'Invalid pagination')
+        with database.connect() as c:
+            u=auth(c,authorization,'read')['user_id']
+            rows=c.execute(select(db.contributions.c.id,db.contributions.c.session_id,db.contributions.c.occurred_at,db.contributions.c.status,db.contributions.c.report,db.exercises.c.name).join(db.exercises,db.exercises.c.id==db.contributions.c.exercise_id).where(db.contributions.c.user_id==u).order_by(db.contributions.c.created_at.desc(),db.contributions.c.id).offset(offset).limit(limit)).mappings()
+            return [dict(r) for r in rows]
+    @app.put('/api/v1/learning/consent')
+    def learning_consent(data:LearningConsent,authorization:str|None=Header(default=None)):
+        with database.begin() as c:
+            u=auth(c,authorization,session=True)['user_id'];learning.set_consent(c,u,data.enabled)
+            return learning.status(c,u)
+    @app.post('/api/v1/learning/examples',status_code=201)
+    def learning_import(data:TrainingBatch,authorization:str|None=Header(default=None)):
+        try:
+            with database.begin() as c:
+                u=auth(c,authorization,'train')['user_id']
+                added=sum(learning.add_record(c,u,r) for r in data.records)
+                return {'added':added,'duplicates':len(data.records)-added,'quality':'pending_operator_review'}
+        except (ValueError,IntegrityError) as e:raise HTTPException(409,str(e) if isinstance(e,ValueError) else 'Concurrent import conflict; retry the same event IDs')
     @app.post('/api/v1/nutrition/target')
     def nutrition(data:NutritionInput,authorization:str|None=Header(default=None)):
         with database.begin() as c:
@@ -241,18 +341,60 @@ def create_app(database=None):
             if 4*target['protein_g']+9*target['fat_g']>target['calories_estimate']:raise HTTPException(422,'Energy estimate is too low for these macro targets; seek an individualized target')
             target['carbohydrate_g']=max(0,round((target['calories_estimate']-4*target['protein_g']-9*target['fat_g'])/4))
             c.execute(insert(db.metadata.tables['nutrition_targets']).values(user_id=u,data=target));return target
+    @app.get('/api/v1/knowledge/status')
+    def knowledge_status(authorization:str|None=Header(default=None)):
+        with database.connect() as c:auth(c,authorization,'read')
+        return knowledge.model_status()
+    @app.get('/api/v1/knowledge/muscles')
+    def knowledge_muscles(q:str=Query(default='',max_length=100),authorization:str|None=Header(default=None)):
+        with database.connect() as c:auth(c,authorization,'read')
+        if q:
+            result=knowledge.muscle(q)
+            if not result:raise HTTPException(404,'Muscle category not found; try the category list')
+            return result
+        return [{'id':m['id'],'aliases':m['aliases'],'kind':m['kind']} for m in knowledge.knowledge()['muscles']]
+    @app.get('/api/v1/knowledge/order')
+    def knowledge_order(authorization:str|None=Header(default=None)):
+        with database.connect() as c:
+            u=auth(c,authorization,'read')['user_id']
+            plan=c.execute(select(db.workouts.c.plan).where(db.workouts.c.user_id==u).order_by(db.workouts.c.created_at.desc())).scalar()
+        return knowledge.order(plan.get('items',[]) if plan else [])
+    @app.get('/api/v1/knowledge/classify')
+    def knowledge_classify(name:str=Query(min_length=2,max_length=200),authorization:str|None=Header(default=None)):
+        with database.connect() as c:auth(c,authorization,'read')
+        return knowledge.classify(name)
+    @app.get('/api/v1/exercises/{exercise_id}/knowledge')
+    def exercise_knowledge(exercise_id:str,authorization:str|None=Header(default=None)):
+        with database.connect() as c:
+            auth(c,authorization,'read')
+            row=c.execute(select(db.exercises).where(db.exercises.c.id==exercise_id)).mappings().first()
+            if not row:raise HTTPException(404,'Exercise not found')
+            return knowledge.exercise(dict(row))
     @app.post('/api/v1/coach')
     def coach(data:CoachRequest,authorization:str|None=Header(default=None)):
+        import re
         with database.begin() as c:
-            u=auth(c,authorization,'coach')['user_id'];text=data.message.lower()
-            if any(w in text for w in ['pain','hurt','sore','dizzy','chest']):reply='Pause if you have pain or alarming symptoms. Update readiness so the safety layer can review your session.'
-            elif 'why' in text:
-                decision=c.execute(select(db.decisions.c.data).where(db.decisions.c.user_id==u).order_by(db.decisions.c.created_at.desc())).scalar()
-                reply=json.dumps(decision) if decision else 'There is no saved programming decision yet.'
-            elif any(w in text for w in ['replace','occupied','travel']):reply='Use Replace in your workout. Alternatives pass the same safety and equipment filters.'
-            else:reply='I can explain saved decisions and help you find readiness or substitution controls. Natural-language model integration is not enabled in this build.'
-            c.execute(insert(db.metadata.tables['ai_interactions']).values(user_id=u,data={'intent_length':len(data.message),'mode':'rules','reply':reply}))
-            return {'reply':reply,'mode':'rules','state_changed':False}
+            u=auth(c,authorization,'coach')['user_id'];text=data.message.lower();result=None
+            if re.search(r'\b(chest pain|chest pressure|fainting|severe breathlessness)\b',text):
+                reply='Stop training and seek urgent medical help for chest pain, chest pressure, fainting or severe breathlessness.'
+            elif re.search(r'\b(pain|painful|hurt|hurts|sore|soreness|dizzy|injury|injured)\b',text):
+                reply='Pause if you have pain or alarming symptoms. Update readiness so the safety layer can review your session.'
+            elif any(w in text for w in ['replace','occupied','travel']):
+                reply='Use Replace in your workout. Alternatives pass the same safety and equipment filters.'
+            else:
+                plan=None
+                if re.search(r'\b(first|order|sequence|then)\b',text):
+                    plan=c.execute(select(db.workouts.c.plan).where(db.workouts.c.user_id==u).order_by(db.workouts.c.created_at.desc())).scalar()
+                rows=[dict(r) for r in c.execute(select(db.exercises)).mappings()]
+                result=knowledge.answer(text,rows,plan.get('items',[]) if plan else [])
+                if result:reply=result['reply']
+                elif 'why' in text:
+                    decision=c.execute(select(db.decisions.c.data).where(db.decisions.c.user_id==u).order_by(db.decisions.c.created_at.desc())).scalar()
+                    reply=json.dumps(decision) if decision else 'There is no saved programming decision yet.'
+                else:reply='Try: What do biceps do? What does barbell bench press target? Which exercise comes first? For exercise variants, choose the exact name in Library. General conversational AI is not connected.'
+            mode=result['mode'] if result else 'rules'
+            c.execute(insert(db.metadata.tables['ai_interactions']).values(user_id=u,data={'intent_length':len(data.message),'mode':mode,'reply':reply}))
+            return {**(result or {}),'reply':reply,'mode':mode,'state_changed':False}
     @app.get('/api/v1/integrations')
     def integrations(authorization:str|None=Header(default=None)):
         with database.connect() as c:auth(c,authorization,'read')
@@ -265,6 +407,6 @@ def create_app(database=None):
     @app.delete('/api/v1/account',status_code=204)
     def erase(authorization:str|None=Header(default=None)):
         with database.begin() as c:
-            u=auth(c,authorization,session=True)['user_id'];c.execute(delete(db.users).where(db.users.c.id==u))
+            u=auth(c,authorization,session=True)['user_id'];learning.forget(c,u);c.execute(delete(db.users).where(db.users.c.id==u))
     return app
 app=create_app()

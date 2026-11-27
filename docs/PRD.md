@@ -15,9 +15,11 @@ Required inputs: adult confirmation, display name, weighted goals, equipment, sc
 | Journey | Acceptance criteria |
 | --- | --- |
 | Onboard | Goal priorities total 100%; optional sensitive fields can be omitted; camera/wearables not required |
+| Plan week | Selected training days produce an explainable Monday–Sunday sequence; completed slots are retained; tracked missed sessions carry forward to the next available day; first observed weeks do not invent historical misses |
 | Prepare | Recent readiness required; pain/alarming symptoms block auto-prescription; no eligible catalog returns an explanation |
 | Train | Explain exercise choice; show instructions, sets/reps/RPE/rest; log actual results or explicit skips |
 | Substitute | Preserve movement intent; re-filter equipment and safety; discard old exercise load; discomfort pauses first |
+| Regenerate | Before set logging starts, user may request a safe alternate session for variety/time/fatigue; regeneration re-runs all safety/catalog/volume rules, is versioned, and cannot turn a rest day into training |
 | Offline | Save pending set events durably; stable event ID across retries; conflicting writes retained for review |
 | Adapt | Require three distinct completed sessions before a small load adjustment; log engine version and reasoning |
 | Recover | Rest sessions receive recognition; no XP loss or attack penalties; unfinished sessions cannot award repeated XP |
@@ -41,3 +43,19 @@ Track opt-in activation, session completion, logging burden, consistency, useful
 ## Release acceptance
 
 All production gates in PRODUCTION.md must close before describing the product as production-grade. The full feature-status matrix is the binding record of implementation completeness.
+
+## Neural learning increment
+
+The product now supports independent training on consenting users' matched set outcomes. Settings must show an optional contribution choice, eligible/pending counts and the actual deployment state. Account access and deterministic recommendations remain available without consent. Uploaded CSV data requires operator data-quality review; completed in-app eligible sets collect automatically. No raw histories are shared with other users, and no language model or provider key is required.
+
+Acceptance: opt-out prevents collection; duplicate sync does not duplicate examples; opt-out retires affected models; historical import is validated and auditable; training saves real weights; weak candidates cannot activate; shadow mode cannot alter prescriptions; reviewed live assistance remains subordinate to safety. The first objective is RPE prediction, not general intelligence, diagnosis or autonomous discovery of optimal training. See TRAINING.md and BACKUP.md for the operator workflow and remaining public-release gates.
+
+## Guided contribution increment
+
+Participants can enter their own workouts without spreadsheets or identifier lookup. The three-step flow supports optional sharing consent, quick check-in choices, searchable exercise selection, set steppers, copy-last reps/load, explicit actual effort, unknown answers, original-prescription disclosure, review/receipt and another exercise in the same workout. Contribution is independent of generating an app workout; the catalog can be collected against before programming metadata approval.
+
+Acceptance: incomplete or pain/skipped feedback is retained without invented model labels; consent is required to send/review shared contributions; duplicate retries do not duplicate data; actual RPE is never prefilled from target effort; participants see their own history only; native drafts survive navigation and are erased on sign-out; review can pick up later metadata approval without duplicate examples. There is no incentive to perform extra exercise for data. A private owner queue reports gaps and admits eligible examples to neural training.
+
+## v0.3.0 Evolve weekly-programming requirements
+
+The weekly layer is derived from profile availability plus durable completed workout snapshots; it does not create a second authoritative schedule database. Split templates must use only movement patterns supported by the deterministic session engine. Missed sessions must not silently consume sequence slots. Recovery UI must describe recency/set-equivalents as heuristics rather than biological recovery certainty. Any generated daily workout remains subject to fresh readiness and all existing safety gates.

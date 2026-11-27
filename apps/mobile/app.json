@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Adaptive Fitness OS",
+    "name": "Fitness AI",
     "slug": "adaptive-fitness-os",
-    "version": "0.1.0",
+    "version": "0.3.1",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "ios": {
@@ -20,7 +20,8 @@
       "expo-status-bar"
     ],
     "extra": {
-      "releaseStage": "development"
+      "releaseStage": "development",
+      "versionName": "Evolve"
     }
   }
 }

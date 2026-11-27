@@ -10,7 +10,7 @@ def data_dir():
 
 @lru_cache(maxsize=4)
 def _manifest(path,mtime_ns):
-    return json.loads(Path(path).read_text())
+    return json.loads(Path(path).read_text(encoding='utf-8'))
 
 def manifest():
     path=data_dir()/'tutorial-media-manifest.json'

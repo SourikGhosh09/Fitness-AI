@@ -102,3 +102,31 @@ def test_declining_readiness_does_not_reuse_high_intensity(system):
 def test_incomplete_workout_not_used_as_completed_history(system):
  w=workout(system);c,d,h=system;c.post('/api/v1/sets',headers=h,json=payload(w))
  assert c.get('/api/v1/progress',headers=h).json()['exercise_history']=={}
+
+def test_evolve_week_endpoint(system):
+ c,d,h=system
+ r=c.get('/api/v1/workouts/week?day=2026-09-25',headers=h)
+ assert r.status_code==200,r.text
+ data=r.json()
+ assert data['policy']=='weekly-0.3.0'
+ assert data['engine_version']=='rules-0.3.0'
+ assert len(data['days'])==7
+ assert data['week_start']=='2026-09-21'
+
+
+def test_evolve_fatigue_regeneration_is_versioned(system):
+ w=workout(system);c,d,h=system
+ r=c.post('/api/v1/workouts/'+w['id']+'/regenerate',headers=h,json={'reason':'fatigue'})
+ assert r.status_code==200,r.text
+ data=r.json()
+ assert data['version']==2
+ assert data['engine_version']=='rules-0.3.0'
+ assert data['programming']['weekly_policy']=='weekly-0.3.0'
+ assert data['programming']['conservative'] is True
+
+
+def test_regeneration_stops_after_logging_starts(system):
+ w=workout(system);c,d,h=system
+ assert c.post('/api/v1/sets',headers=h,json=payload(w)).status_code==201
+ r=c.post('/api/v1/workouts/'+w['id']+'/regenerate',headers=h,json={'reason':'fatigue'})
+ assert r.status_code==409

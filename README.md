@@ -1,921 +1,142 @@
-# 🧠💪 Fitness AI
+# Adaptive Fitness OS
 
-> **An adaptive AI-powered fitness operating system that learns from the user, evolves with their progress, and builds personalized training, recovery, mobility, nutrition, and lifestyle plans.**
+**Current development release: v0.3.1 — Evolve.** Evolve adds a schedule-aware weekly programming layer above the existing safe session engine. It derives the Monday–Sunday plan from selected training days and completed workout history, carries unfinished session sequence slots forward, exposes recovery recency from completed sets, and supports safe pre-logging workout regeneration.
 
-Fitness AI is an open, modular fitness intelligence platform designed to act as a continuously adapting personal trainer.
+An implemented development foundation for an adaptive fitness platform, with an Expo Android/iOS client, FastAPI API, SQLAlchemy persistence, deterministic safety/ranking/progression, an auditable dataset importer, and revocable personal API keys.
 
-Instead of generating a static workout plan, Fitness AI collects information about the user, evaluates performance after each session, tracks progress over time, and adjusts future recommendations accordingly.
+**Status: development, not production-ready.** This is not the complete system described in the master brief. The implemented core and outstanding work are explicitly tracked in [feature status](docs/FEATURE_STATUS.md). No model trained on real users, native camera coach, wearable integration, deployment, APK, or App Store release is claimed.
 
-The long-term objective is to create a complete **AI Fitness Operating System** capable of supporting users ranging from complete beginners to advanced athletes.
+## What works
 
----
+- Account registration/sign-in with Argon2 password hashes and expiring opaque bearer sessions.
+- Personal API keys: cryptographically random secrets, shown once, SHA-256 hashes at rest, scopes, expiry, listing and revocation. API keys cannot mint additional keys.
+- Profiles, weighted goals totaling 100%, optional sensitive fields, equipment and restrictions.
+- Readiness check, fail-closed safety filtering, explainable ranking, session-specific preparation, RPE/RIR prescriptions, small load changes after three sessions, and substitutions.
+- Evolve weekly planning: 1–7 selected training days, 1–5 day full-body/upper-lower templates plus bounded higher-frequency sequencing, missed-session carry-forward, derived recovery recency, and pre-logging regeneration for variety/time/fatigue.
+- Immutable set events with owner isolation, transactional deduplication, pain pauses, session completion and one-time XP.
+- Exercise search, English instructions, and dataset GIF tutorial controls in the library and workouts. The supplied GIFs now play through the authenticated backend inside the app, using the owner’s confirmed media authorization. See [animated tutorials](docs/ANIMATED_TUTORIALS.md).
+- Mobile SQLite cache/outbox, explicit sync conflict messages, secure session storage, and signed-out cache erasure.
+- Optional approximate nutrition targets; rule-based coaching explanations; account export/deletion API.
 
-# 🎯 Project Vision
+## Start the backend
 
-Most fitness applications provide users with predefined programs.
-
-Fitness AI is designed differently.
-
-The system follows a continuous feedback loop:
-
-```text
-Understand User
-      ↓
-Assess Current Condition
-      ↓
-Understand Goals
-      ↓
-Generate Training Plan
-      ↓
-User Performs Workout
-      ↓
-Collect Session Feedback
-      ↓
-Analyze Performance
-      ↓
-Update User Fitness Profile
-      ↓
-Adapt Next Workout
-      ↓
-Repeat
-```
-
-The AI should gradually develop a better understanding of each user.
-
-The ultimate goal is:
-
-> **One intelligent fitness system that adapts training, recovery, mobility, nutrition, progression, and motivation around the individual user.**
-
----
-
-# ✨ Core Features
-
-## 🤖 Adaptive AI Fitness Coach
-
-Fitness AI can generate personalized recommendations using information such as:
-
-- Fitness goals
-- Training experience
-- Age
-- Height
-- Weight
-- Body measurements
-- Strength level
-- Mobility
-- Flexibility
-- Endurance
-- Cardio ability
-- Available equipment
-- Workout environment
-- Training frequency
-- Session duration
-- Exercise preferences
-- Recovery
-- Sleep
-- Soreness
-- Previous workout performance
-
-The system can continuously modify future recommendations as new data becomes available.
-
----
-
-## 🎯 Multi-Goal Fitness Planning
-
-Users are not restricted to a single fitness objective.
-
-Fitness AI is designed to support combinations of goals such as:
-
-- Muscle gain
-- Fat loss
-- Body recomposition
-- Strength development
-- Endurance
-- Cardiovascular fitness
-- Mobility
-- Flexibility
-- Athletic performance
-- Aesthetic physique
-- Posture improvement
-- General fitness
-- Wellness
-
-The planning engine can prioritize multiple goals while attempting to manage conflicts between them.
-
----
-
-# 🏋️ Adaptive Workout Programming
-
-The workout engine is intended to support both simple and advanced programming.
-
-### Beginner Mode
-
-Provides an easy-to-understand experience with:
-
-- Exercise
-- Sets
-- Repetitions
-- Rest time
-- Exercise instructions
-- Warm-up
-- Cool-down
-
-### Advanced Mode
-
-Can expose additional training variables including:
-
-- RPE
-- RIR
-- Training volume
-- Intensity
-- Progressive overload
-- Rep ranges
-- Tempo
-- Rest intervals
-- Periodization
-- Deloads
-- Training frequency
-- Volume distribution
-
-Advanced information should remain expandable so beginners are not overwhelmed.
-
----
-
-# 📈 Progressive Overload Engine
-
-Fitness AI can evaluate previous workout performance and determine whether training should progress.
-
-Example:
-
-```text
-Previous Session
-
-Bench Press
-Weight: 60 kg
-Target: 3 × 10
-Completed: 10 / 10 / 10
-RPE: 7
-
-AI Analysis
-↓
-Exercise completed successfully
-↓
-Recovery acceptable
-↓
-Increase training stimulus
-
-Next Session
-
-Bench Press
-Weight: 62.5 kg
-Target: 3 × 8–10
-```
-
-Progression does not have to mean increasing weight.
-
-The system may modify:
-
-- Weight
-- Repetitions
-- Sets
-- Exercise difficulty
-- Range of motion
-- Tempo
-- Rest period
-- Training density
-- Weekly volume
-
----
-
-# 🔄 Post-Workout Feedback Loop
-
-After each workout, users can provide quick feedback.
-
-Example inputs:
-
-```text
-Workout Difficulty
-Easy ─────────●──── Hard
-
-Energy
-Low ──────────●──── High
-
-Soreness
-None ─────●──────── Severe
-
-Sleep
-Poor ─────────●──── Excellent
-
-Performance
-Worse ────────●──── Better
-```
-
-The AI can use this information to modify upcoming sessions.
-
----
-
-# 🧘 Warm-Up, Mobility & Recovery
-
-Fitness AI is intended to include exercise-specific preparation and recovery.
-
-Each training session can contain:
-
-```text
-Pre-Workout Preparation
-        ↓
-Dynamic Mobility
-        ↓
-Activation Exercises
-        ↓
-Main Workout
-        ↓
-Accessory Work
-        ↓
-Post-Workout Cooldown
-        ↓
-Stretching
-        ↓
-Recovery Recommendations
-```
-
-Warm-ups and stretches can be selected according to the muscles and movement patterns trained that day.
-
----
-
-# 🏠 Gym + Home Training
-
-Fitness AI should work regardless of where the user trains.
-
-### Gym Mode
-
-Users can specify available equipment such as:
-
-- Barbell
-- Dumbbells
-- Cable machines
-- Smith machine
-- Resistance machines
-- Benches
-- Cardio equipment
-- Pull-up stations
-- Specialty equipment
-
-### Home Mode
-
-Programs can automatically adapt to:
-
-- Bodyweight only
-- Resistance bands
-- Dumbbells
-- Kettlebells
-- Pull-up bars
-- Basic home equipment
-
-Users without equipment should still receive complete training programs.
-
----
-
-# 🔁 Exercise Substitution Engine
-
-If an exercise cannot be performed, the system can find an alternative based on:
-
-```text
-Target Muscle
-+
-Movement Pattern
-+
-Available Equipment
-+
-Difficulty
-+
-User Ability
-+
-Training Goal
-+
-Previous Performance
-```
-
-Example:
-
-```text
-Barbell Bench Press unavailable
-
-        ↓
-
-Possible Alternatives
-
-Dumbbell Bench Press
-Push-Ups
-Machine Chest Press
-Cable Press
-Floor Press
-```
-
----
-
-# 🥗 Nutrition System
-
-Nutrition can be enabled or disabled according to user preference.
-
-Potential functionality includes:
-
-- Calorie estimation
-- Macro targets
-- Protein recommendations
-- Meal planning
-- Hydration tracking
-- Food logging
-- Weight trend analysis
-- Goal-based nutrition adjustments
-
-Nutrition recommendations should adapt alongside changes in training and body composition goals.
-
----
-
-# 🧬 User Fitness Profile
-
-Each user can have an evolving fitness profile.
-
-Example:
-
-```json
-{
-  "strength": 62,
-  "cardio": 48,
-  "endurance": 55,
-  "mobility": 67,
-  "flexibility": 58,
-  "recovery": 72
-}
-```
-
-These values can change as additional training data becomes available.
-
-The profile acts as part of the AI's long-term understanding of the user.
-
----
-
-# 🧪 Fitness Assessment
-
-During onboarding, Fitness AI can evaluate areas such as:
-
-```text
-Strength
-Cardiovascular Fitness
-Endurance
-Mobility
-Flexibility
-Body Composition
-Training Experience
-Recovery Capacity
-```
-
-Users may either provide information manually or complete guided assessments.
-
-Future versions may support automated assessments using sensors and computer vision.
-
----
-
-# 🎮 Gamification
-
-Fitness AI is designed to make consistency rewarding.
-
-Possible game mechanics include:
-
-- XP
-- Levels
-- Coins
-- Achievements
-- Streaks
-- Daily quests
-- Weekly quests
-- Challenges
-- Character progression
-- Rewards
-- Fitness milestones
-
-Example:
-
-```text
-Complete Strength Workout
-+200 XP
-+50 Coins
-
-Complete Mobility Session
-+100 XP
-+30 Coins
-
-Hit Daily Hydration Goal
-+50 XP
-+20 Coins
-```
-
-The purpose of gamification is to encourage healthy consistency rather than unsafe training volume.
-
----
-
-# 🧙 Character Evolution
-
-A user's virtual character can evolve alongside their real-world progress.
-
-```text
-Beginner
-   ↓
-Active
-   ↓
-Fit
-   ↓
-Strong
-   ↓
-Athlete
-   ↓
-Elite
-```
-
-Progress may be connected to:
-
-- Training consistency
-- Fitness improvements
-- Completed quests
-- Personal records
-- Recovery habits
-- Nutrition adherence
-
----
-
-# ⌚ Wearable Integration
-
-Future versions are intended to support health and wearable platforms.
-
-Potential data includes:
-
-- Heart rate
-- Resting heart rate
-- Steps
-- Calories
-- Sleep
-- Workout duration
-- Heart-rate zones
-- Recovery indicators
-- Activity history
-
-Potential integrations include platform health APIs and compatible wearable devices.
-
----
-
-# 📷 Computer Vision
-
-Optional computer-vision features may eventually provide:
-
-```text
-Camera
-   ↓
-Pose Detection
-   ↓
-Joint Tracking
-   ↓
-Movement Analysis
-   ↓
-Rep Detection
-   ↓
-Technique Feedback
-```
-
-Potential applications include:
-
-- Rep counting
-- Range-of-motion estimation
-- Exercise recognition
-- Basic movement feedback
-
-Computer-vision feedback should be treated as guidance rather than medical or professional diagnosis.
-
----
-
-# 🧠 AI Learning Architecture
-
-Fitness AI is intended to evolve from rules and structured recommendations toward increasingly intelligent personalization.
-
-A simplified architecture:
-
-```text
-User Data
-   ↓
-Data Validation
-   ↓
-Feature Engineering
-   ↓
-User Fitness Profile
-   ↓
-Recommendation Engine
-   ↓
-Workout Generator
-   ↓
-User Performance
-   ↓
-Feedback Collection
-   ↓
-Training Dataset
-   ↓
-Model Training / Evaluation
-   ↓
-Updated AI
-```
-
----
-
-# 📊 Data Pipeline
-
-```text
-User
- ↓
-Mobile Application
- ↓
-API
- ↓
-Database
- ↓
-Fitness Intelligence Engine
- ↓
-Recommendation
- ↓
-Workout
- ↓
-Workout Results
- ↓
-Analytics
- ↓
-Learning Dataset
-```
-
-The data architecture should maintain separation between operational application data and datasets prepared for AI experimentation/training.
-
----
-
-# 🗃️ Exercise Dataset
-
-The project may use structured exercise datasets for exercise metadata and media.
-
-One initial reference dataset:
-
-`hasaneyldrm/exercises-dataset`
-
-Exercise information can include:
-
-```text
-Exercise
-Muscle Group
-Secondary Muscles
-Equipment
-Difficulty
-Movement Pattern
-Instructions
-Images / Video
-Training Category
-```
-
-Any external dataset must be reviewed for its license and permitted use before being included in production.
-
----
-
-# 🏗️ High-Level Architecture
-
-```text
-┌──────────────────────────────┐
-│        Mobile App            │
-│      Android / iOS           │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│           API Layer          │
-└──────────────┬───────────────┘
-               │
-       ┌───────┴────────┐
-       ▼                ▼
-┌─────────────┐   ┌──────────────┐
-│ Application │   │ Fitness AI   │
-│   Backend   │   │    Engine    │
-└──────┬──────┘   └───────┬──────┘
-       │                   │
-       ▼                   ▼
-┌─────────────┐   ┌──────────────┐
-│  Database   │   │ ML Pipeline  │
-└─────────────┘   └──────────────┘
-       │                   │
-       └─────────┬─────────┘
-                 ▼
-        ┌────────────────┐
-        │ Analytics/Data │
-        └────────────────┘
-```
-
----
-
-# 📁 Repository Structure
-
-The project is intended to follow a modular structure similar to:
-
-```text
-Fitness-AI/
-│
-├── apps/
-│   ├── mobile/
-│   └── admin/
-│
-├── backend/
-│   ├── api/
-│   ├── auth/
-│   ├── users/
-│   ├── workouts/
-│   ├── exercises/
-│   ├── nutrition/
-│   └── analytics/
-│
-├── ai/
-│   ├── recommendation-engine/
-│   ├── workout-generator/
-│   ├── adaptation-engine/
-│   ├── models/
-│   └── inference/
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   ├── datasets/
-│   └── schemas/
-│
-├── training/
-│   ├── preprocessing/
-│   ├── experiments/
-│   ├── evaluation/
-│   └── checkpoints/
-│
-├── docs/
-│   ├── PRD/
-│   ├── TRD/
-│   ├── architecture/
-│   ├── api/
-│   └── ai/
-│
-├── scripts/
-├── tests/
-├── .github/
-├── .env.example
-├── compose.yaml
-├── SECURITY.md
-├── LICENSE
-└── README.md
-```
-
-The actual structure may evolve as development progresses.
-
----
-
-# 🚀 Development Roadmap
-
-### Phase 1 — Foundation
-
-- Repository architecture
-- User authentication
-- User profiles
-- Fitness onboarding
-- Exercise database
-- Workout logging
-- Backend APIs
-
-### Phase 2 — Fitness Intelligence
-
-- Assessment engine
-- Workout generation
-- Exercise substitution
-- Progressive overload
-- Recovery adjustment
-- Multi-goal planning
-
-### Phase 3 — Adaptive AI
-
-- Session feedback
-- User fitness state
-- Recommendation history
-- Dataset generation
-- Model experiments
-- Evaluation pipeline
-
-### Phase 4 — Complete Fitness System
-
-- Nutrition
-- Mobility
-- Stretching
-- Yoga
-- Cardio
-- Advanced programming
-- Analytics
-
-### Phase 5 — Smart Integrations
-
-- Wearables
-- Health APIs
-- Computer vision
-- Rep counting
-- Movement analysis
-
-### Phase 6 — Advanced Intelligence
-
-- Long-term personalization
-- Predictive recovery
-- Training-load optimization
-- Automated program modification
-- Continual model improvement
-
----
-
-# 🔐 Privacy & Security
-
-Fitness information can contain sensitive personal data.
-
-The project should therefore follow principles such as:
-
-- Collect only necessary information
-- Obtain clear user consent
-- Encrypt sensitive information
-- Secure authentication
-- Role-based access control
-- Secure API communication
-- Environment-based secrets
-- Audit important operations
-- Allow account/data deletion
-- Separate personally identifiable information from AI training datasets where practical
-- Never commit secrets or production credentials to Git
-
----
-
-# ⚠️ Health & Safety
-
-Fitness AI is intended for **fitness, education, planning, and wellness support**.
-
-It is not intended to:
-
-- Diagnose medical conditions
-- Replace doctors
-- Replace physiotherapists
-- Replace qualified medical professionals
-- Provide emergency medical advice
-
-Training recommendations should contain appropriate safety limits and adapt conservatively when users report pain, injury, abnormal symptoms, or inadequate recovery.
-
----
-
-# 🧪 Project Status
-
-> **🚧 Active Development / Early Architecture Stage**
-
-The project is currently being developed incrementally.
-
-Major components, APIs, AI models, schemas, and application interfaces may change significantly during development.
-
-Production readiness should not be assumed until the relevant components have been tested, reviewed, and documented.
-
----
-
-# 🛠️ Getting Started
-
-Clone the repository:
+Python 3.11+; tested with Python 3.12. From the repository root:
 
 ```bash
-git clone git@github.com:SourikGhosh09/Fitness-AI.git
+python -m venv .venv
+. .venv/bin/activate
+pip install -r backend/requirements.lock
+cd backend
+python -m fitness.setup
+uvicorn fitness.api:app --host 0.0.0.0 --port 8000
 ```
 
-Enter the project:
+Local API docs: `http://localhost:8000/docs`. SQLite is used unless `DATABASE_URL` points to PostgreSQL. Use local test data until release gates are closed.
+
+**The import intentionally does not approve exercise metadata.** The library/search and account features work immediately; training generation returns a clear conflict response until compatible exercise metadata has been reviewed. Test fixtures are never seeded into a user database. See [catalog review](docs/CATALOG_REVIEW.md).
+
+## Start the mobile app
 
 ```bash
-cd Fitness-AI
+cd apps/mobile
+npm ci
 ```
 
-Review the repository documentation and environment template before installing or starting individual services.
-
-Because the architecture is still evolving, service-specific installation commands should be documented alongside each application rather than assumed here.
-
----
-
-# 🤝 Contributing
-
-Contributions, experiments, bug reports, documentation improvements, and architectural suggestions are welcome as the project develops.
-
-A typical contribution workflow:
+Create `apps/mobile/.env` from its `.env.example`, using your computer's LAN IP for a physical device (localhost on a phone means the phone itself). Then:
 
 ```bash
-git checkout -b feature/my-feature
+npx expo start
 ```
 
-Make and test the changes.
+The project targets Expo SDK 54 / React Native 0.81.5 as a pinned development baseline. Native build commands are `npm run android` and `npm run ios`; these require Android SDK/Xcode respectively. EAS preview configuration produces an APK after an authenticated build in your Expo account. No signing credentials are included.
 
-Then:
+## Automatic Notion collection sync
+
+The native app now has **Settings → Notion collection**. With explicit app consent,
+the background worker imports Notion exercise-set records, detects corrections,
+prevents duplicates and handles withdrawal cleanup. **Implemented and locally tested;
+not activated on a live host.** No Google Form is required for this path. Start with
+[Notion setup and testing](integrations/notion/README.md). A server-side Notion token
+and running API/database/worker are still required; none is included in the source ZIP.
+
+## Optional legacy Google Form connection
+
+For free personal testing, see [Vercel deployment](docs/VERCEL_DEPLOYMENT.md): Vercel hosts the Python API and tutorials, external PostgreSQL stores user data, and your computer runs candidate training. Deployment configuration is included; no live deployment is claimed.
+
+The [Google Forms setup guide](integrations/google-forms/README.md) includes a native form installer, private participant links, authenticated submission/edit/deletion synchronization and a candidate-training worker. It needs one Google authorization and a publicly hosted HTTPS backend. The integration is implemented and locally tested; no live Google Form or hosted connection has been created. Passing candidates can update shadow evaluation automatically; live workout changes retain the reviewed release gate.
+
+## Collect data from participants
+
+Open the new **Contribute** tab for a three-step workout form: quick check-in, exercise search/set logging, then review and send. It supports unknown answers, saved drafts, duplicate-safe retries and explicit opt-in. Participants need no CSV or exercise IDs. See [the collection guide](docs/COLLECTING_DATA.md) for setup, owner review and connecting other users to your backend.
+
+## Start with trained exercise knowledge
+
+A trained exercise-name neural classifier is now bundled, alongside sourced muscle functions and explicit exercise-order rules. In **Coach**, use the muscle/order quick questions or expand **Explore the trained neural model**. In **Library**, tap **What this exercise targets**. See [initial knowledge and retraining](docs/EXERCISE_KNOWLEDGE.md) for results, limitations and the one-command training procedure.
+
+## Train your own neural network
+
+The app now includes an actual CPU neural network for RPE prediction, opt-in workout-data collection, historical CSV import, training/evaluation, model deployment controls and database/model backups. No ChatGPT or external AI key is needed. Start with [the training guide](docs/TRAINING.md); use [the backup guide](docs/BACKUP.md) for recovery. No real-user-trained model is bundled, and weak candidates remain experimental.
+
+From `backend`, after setup and data collection:
 
 ```bash
+python -m fitness.ml train
+python -m fitness.ml status
+# Optional recurring worker; trains candidates without auto-activating them:
+python -m fitness.ml watch --interval-hours 24
+```
+
+## Your API key
+
+Run the backend, create/sign in to an account, then open **Settings → Create read-only key**. Copy the one-time secret. For train/coach scopes use authenticated `POST /api/v1/api-keys` in the API docs. Details: [API keys](docs/API_KEYS.md).
+
+A key issued by this backend authenticates to **your deployed Fitness OS API**. It does not provide an external provider's AI model or paid inference credits. The app can operate its deterministic core without any provider key.
+
+## Tests
+
+```bash
+cd backend
+python -m pytest -q
+cd ../apps/mobile
+npm run test:media
+npm run typecheck
+npx expo export --platform android --platform ios
+```
+
+See [validation report](docs/VALIDATION.md). Bundling is not native device testing.
+
+## Project map
+
+| Path | Contents |
+| --- | --- |
+| `backend/fitness` | API, typed request validation, deterministic session engine, Evolve weekly planner, importer, review CLI |
+| `backend/alembic` | Versioned migrations with immutable initial schema snapshot |
+| `backend/tests` | Safety, authorization, isolation, deduplication and import tests |
+| `apps/mobile` | Native mobile UI, secure credentials, SQLite cache/outbox |
+| `data/exercises.json` | Unmodified upstream snapshot, 1,324 exercises |
+| `data/tutorial-media` | 1,324 uploaded GIFs and 1,324 thumbnails for in-app tutorials |
+| `data/media-authorization.json` | Owner declaration and exact supplied archive/data scope |
+| `licenses` | Upstream non-media MIT license and media notice |
+| `docs` | PRD, TRD, UI/UX specification, schema, feature status, production gates |
+
+## Dataset and media rights
+
+Source: [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset), commit `7455efae41b330c265e7cd4b78dfa848e7ce5ebd`. Source bytes are verified against their Git blob hash before import. Non-media content is distributed with the original license. The owner-supplied GIFs and thumbnails are included and enabled by setup using their explicit media authorization. Exact asset hashes and original attribution are retained. See [licensing assessment](docs/LICENSING.md).
+
+## GitHub publishing
+
+Target repository: https://github.com/SourikGhosh09/Fitness-AI. It exists, but the connected GitHub app rejected the source upload with HTTP 403. This local package includes the latest changes. From an authenticated local GitHub CLI or Git checkout with write access:
+
+```bash
+git init -b main
 git add .
-git commit -m "feat: describe the change"
-git push origin feature/my-feature
+git commit -m "Build adaptive fitness development foundation"
+git remote add origin https://github.com/SourikGhosh09/Fitness-AI.git
+git push -u origin main
 ```
 
-Open a pull request describing:
+A source repository being available does not mean the backend has been deployed.
 
-- What changed
-- Why it changed
-- How it was tested
-- Any limitations
-- Any relevant screenshots or results
+## Render and Notion pilot
 
----
-
-# 📝 Development Logging
-
-Major AI-assisted and manual changes should be documented in clear, human-readable language.
-
-The development log should explain:
-
-```text
-What changed?
-Why was it changed?
-Which files/components changed?
-What new functionality was added?
-Was anything removed?
-Were bugs fixed?
-What remains unfinished?
-What should happen next?
-```
-
-This keeps the project understandable even as automated coding agents contribute to development.
-
----
-
-# 📚 Documentation
-
-As the project grows, documentation should include:
-
-- Product Requirements Document (PRD)
-- Technical Requirements Document (TRD)
-- AI architecture
-- System architecture
-- Database schema
-- API specification
-- Data-management specification
-- Model-training documentation
-- Evaluation methodology
-- Security documentation
-- UI/UX specifications
-- Deployment documentation
-- Development change logs
-
----
-
-# 🌟 Long-Term Goal
-
-Fitness AI aims to evolve beyond a traditional workout application.
-
-The intended system is:
-
-```text
-Personal Trainer
-      +
-Strength Coach
-      +
-Workout Planner
-      +
-Mobility Coach
-      +
-Nutrition Assistant
-      +
-Recovery Assistant
-      +
-Progress Tracker
-      +
-Fitness Analytics
-      +
-Gamification Engine
-      +
-Adaptive AI
-      =
-FITNESS AI
-```
-
-The vision is simple:
-
-> **Build a fitness intelligence system that understands each user, learns from their progress, and becomes more personalized over time.**
-
----
-
-# 👨‍💻 Project Owner
-
-**Sourik Ghosh**
-
-GitHub: `SourikGhosh09`
-
-Repository: `SourikGhosh09/Fitness-AI`
-
----
-
-## ⭐ Support the Project
-
-If you find Fitness AI interesting, consider starring the repository and following its development.
-
-**Build. Train. Measure. Adapt. Repeat.**
+See [deployment and activation instructions](docs/RENDER_NOTION_DEPLOYMENT.md). After cloning, run `python scripts/prepare_assets.py` to restore the compressed catalog/model and verified tutorials before setup or tests.
