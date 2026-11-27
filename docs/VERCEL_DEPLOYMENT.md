@@ -56,7 +56,7 @@ npx vercel@59.16.0 whoami
 npx vercel@59.16.0 link
 ```
 
-Select your personal Hobby account and create/select `fitness-ai-api`. Root Directory must be the **repository root**, not `backend` or `apps/mobile`. Framework is **FastAPI**. Leave build, install and output overrides unset; the root `requirements.txt` references the tested lock and `app.py` exports the API. Do not enable a Pro trial or purchase integrations.
+Select your personal Hobby account and create/select `fitness-ai-api`. Root Directory must be the **repository root**, not `backend` or `apps/mobile`. Framework is **FastAPI**. Leave build, install and output overrides unset; the root `requirements.txt` is a plain copy of the tested lock (no `-r` include, which Vercel cannot parse; a test keeps them identical, so run `cp backend/requirements.lock requirements.txt` after changing the lock) and `app.py` exports the API. Do not enable a Pro trial or purchase integrations.
 
 In Vercel Project Settings → Environment Variables, configure separately for Production and Preview:
 
