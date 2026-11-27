@@ -6,7 +6,7 @@ from fastapi import FastAPI,Header,HTTPException,Request,Query
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select,insert,update,delete,func
 from sqlalchemy.exc import IntegrityError
-from . import db,security,engine,weekly,tutorials,learning,contributions,knowledge,survey,notion_sync,logbook
+from . import cloud_coach,db,security,engine,weekly,tutorials,learning,contributions,knowledge,survey,notion_sync,logbook
 from .contracts import *
 from .learning_contracts import LearningConsent,TrainingBatch
 
@@ -478,6 +478,29 @@ def create_app(database=None):
             mode=result['mode'] if result else 'rules'
             c.execute(insert(db.metadata.tables['ai_interactions']).values(user_id=u,data={'intent_length':len(data.message),'mode':mode,'reply':reply}))
             return {**(result or {}),'reply':reply,'mode':mode,'state_changed':False}
+    @app.get('/api/v1/coach/cloud/status')
+    def cloud_status(authorization:str|None=Header(default=None)):
+        with database.connect() as c:
+            auth(c,authorization,'coach')
+            return {'available':cloud_coach.configured() is not None,'daily_limit':cloud_coach.DAILY_LIMIT}
+    @app.post('/api/v1/coach/cloud')
+    def coach_cloud(data:CloudCoachRequest,authorization:str|None=Header(default=None)):
+        """Optional free-tier cloud answer. The client sends only what the user chose to share for this question."""
+        with database.begin() as c:
+            u=auth(c,authorization,'coach')['user_id']
+            ai=db.metadata.tables['ai_interactions']
+            safe=cloud_coach.safety_reply(data.message)
+            if safe:
+                c.execute(insert(ai).values(user_id=u,data={'intent_length':len(data.message),'mode':'cloud-safety','reply':safe}))
+                return {'reply':safe,'mode':'safety','state_changed':False}
+            if cloud_coach.configured() is None:raise HTTPException(503,'Cloud coach is not configured on the server.')
+            since=time.time()-24*3600
+            used=sum(1 for r in c.execute(select(ai.c.data).where(ai.c.user_id==u,ai.c.created_at>since)).scalars() if isinstance(r,dict) and r.get('mode')=='cloud')
+            if used>=cloud_coach.DAILY_LIMIT:raise HTTPException(429,'Daily cloud coach limit reached. The on-device coach still works.')
+            try:reply,provider=cloud_coach.complete(data.system,[t.model_dump() for t in data.history],data.message)
+            except cloud_coach.CloudUnavailable as e:raise HTTPException(503,str(e))
+            c.execute(insert(ai).values(user_id=u,data={'intent_length':len(data.message),'mode':'cloud','provider':provider}))
+            return {'reply':reply,'mode':'cloud','provider':provider,'state_changed':False}
     @app.get('/api/v1/integrations')
     def integrations(authorization:str|None=Header(default=None)):
         with database.connect() as c:auth(c,authorization,'read')

@@ -1,6 +1,36 @@
 {
   "components": {
     "schemas": {
+      "CloudCoachRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/CoachTurn"
+            },
+            "maxItems": 10,
+            "title": "History",
+            "type": "array"
+          },
+          "message": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "system": {
+            "default": "",
+            "maxLength": 6000,
+            "title": "System",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "CloudCoachRequest",
+        "type": "object"
+      },
       "CoachRequest": {
         "additionalProperties": false,
         "properties": {
@@ -15,6 +45,31 @@
           "message"
         ],
         "title": "CoachRequest",
+        "type": "object"
+      },
+      "CoachTurn": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "CoachTurn",
         "type": "object"
       },
       "Consent": {
@@ -1891,6 +1946,105 @@
           }
         },
         "summary": "Coach"
+      }
+    },
+    "/api/v1/coach/cloud": {
+      "post": {
+        "description": "Optional free-tier cloud answer. The client sends only what the user chose to share for this question.",
+        "operationId": "coach_cloud_api_v1_coach_cloud_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloudCoachRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Coach Cloud"
+      }
+    },
+    "/api/v1/coach/cloud/status": {
+      "get": {
+        "operationId": "cloud_status_api_v1_coach_cloud_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cloud Status"
       }
     },
     "/api/v1/contributions": {

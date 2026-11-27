@@ -17,11 +17,24 @@
       "expo-secure-store",
       "expo-sqlite",
       "expo-image",
-      "expo-status-bar"
+      "expo-status-bar",
+      "react-native-blob-util",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
     ],
     "extra": {
       "releaseStage": "development",
-      "versionName": "Evolve"
-    }
+      "versionName": "Evolve",
+      "eas": {
+        "projectId": "50618404-22e1-4dae-a721-483679051d3a"
+      }
+    },
+    "owner": "sourikghosh09s-team"
   }
 }

@@ -74,6 +74,14 @@ class SetLog(Contract):
 class CoachRequest(Contract):
     message: str = Field(min_length=1,max_length=2000)
 
+class CoachTurn(Contract):
+    role: Literal['user','assistant']
+    content: str = Field(min_length=1,max_length=2000)
+class CloudCoachRequest(Contract):
+    message: str = Field(min_length=1,max_length=2000)
+    system: str = Field(default='',max_length=6000)
+    history: list[CoachTurn] = Field(default_factory=list,max_length=10)
+
 class RegenerateWorkout(Contract):
     reason: Literal['variety','equipment','time','fatigue'] = 'variety'
 
