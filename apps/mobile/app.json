@@ -17,7 +17,9 @@
       "expo-secure-store",
       "expo-sqlite",
       "expo-image",
-      "expo-status-bar"
+      "expo-status-bar",
+      "react-native-blob-util",
+      ["expo-build-properties",{"android":{"minSdkVersion":26}}]
     ],
     "extra": {
       "releaseStage": "development",

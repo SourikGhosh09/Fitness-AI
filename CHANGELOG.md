@@ -6,7 +6,10 @@
 - Workout logbook: dated per-set journal (`workout_logs`, migration 0008) with `GET/PUT/DELETE /logs/{date}`, `GET /logs?start&end`, `POST /logs/{date}/from-plan`, optimistic versioning, previous-performance hints and weekly summaries.
 - Mobile **Log** tab: Monday-Sunday date strip and jump-to-date, per-set weight/reps/RIR, session stopwatch with pause, clock-based rest timer, timed-set countdown, warm-up/stretch/cooldown checklists, conditioning, review fields, share-as-text, on-device draft with retry, and each catalog exercise's animated tutorial inline.
 - `npm run test:log` and logbook API tests.
+- AI coach (milestone 1): Coach tab chat with an on-device model (react-native-executorch, Qwen 2.5 1.5B, 4-bit weights, downloaded on first use after an explicit confirm, Wi-Fi prompt), streaming replies, and an optional free-tier cloud model for heavy questions via `POST /coach/cloud` (server-held Gemini or OpenRouter key, per-user daily cap, off by default in the app). Pain and emergency wording is answered by a deterministic safety gate before any model. Model-proposed changes (log set, swap exercise, rebuild workout, change training days) are strictly validated, shown as a confirm card, then executed through the existing engine endpoints and offline set queue.
+- `npm run test:coach` and cloud coach API tests.
 ### Changed
+- Android minSdk is 26 (required by the on-device runtime); `expo-build-properties`, `react-native-worklets`, `react-native-blob-util`, `react-native-device-info`, `expo-network` added.
 ### Fixed
 ### Removed
 ### Security

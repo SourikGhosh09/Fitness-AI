@@ -22,7 +22,7 @@
 | Wearables | Explicitly unavailable; architecture only |
 | Camera | Explicitly unavailable; no permission requested; architecture only |
 | Exercise knowledge | Trained source-only 64-unit name classifier, 19 sourced target categories, muscle-function references, goal-priority ordering and read-only explanations; 70.9% held-out source-label accuracy, experimental, not clinically validated |
-| LLM | Not connected; bounded rule-based and sourced knowledge answers |
+| LLM | Experimental (unvalidated on device): optional on-device 1.5B model and optional free-tier cloud model behind a deterministic safety gate; every change is confirmed by the user and executed by the engine. Not clinically validated |
 | Personalization ML | Actual 32/16-unit CPU neural network, consent-aware collection, reviewed CSV ingestion, train/evaluate/registry and bounded inference implemented; no real-user-trained or clinically validated model included |
 | Google survey bridge | Native Apps Script installer, private links, signed revision-aware synchronization and automatic validation/training/shadow promotion implemented; Google account activation and public backend still required |
 | Data/model backups | SQLite snapshot/verified quarantine restore implemented and tested; hosted PostgreSQL backup/PITR and encryption configuration pending |

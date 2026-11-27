@@ -34,3 +34,4 @@ training-private/
 data/exercises.json
 data/knowledge/exercise-model.json
 data/tutorial-media/
+.test-coach/
