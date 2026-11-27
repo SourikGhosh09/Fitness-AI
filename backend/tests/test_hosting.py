@@ -28,3 +28,10 @@ def test_local_sqlite_still_enforces_foreign_keys(monkeypatch):
     with database.connect() as connection:
         assert connection.exec_driver_sql('PRAGMA foreign_keys').scalar()==1
     database.dispose()
+
+
+def test_root_requirements_match_lock_without_includes():
+    """Vercel's Python parser fails on `-r` includes, so the root file is a plain copy."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[2]
+    assert (root / 'requirements.txt').read_text() == (root / 'backend' / 'requirements.lock').read_text()
