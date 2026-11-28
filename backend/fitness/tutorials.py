@@ -1,4 +1,4 @@
-"""Serve authorized source-matched tutorial GIFs from the supplied local assets."""
+"""Serve authorized source-matched tutorial GIFs, locally or from the pinned public source."""
 import argparse
 import json
 import math
@@ -40,7 +40,7 @@ def descriptor(conn,exercise_id):
             result['status']='license_required'
         grant=active_grant(conn,row,commit) if row['license_status']=='licensed' else None
         if not grant:continue
-        if not media_assets.resolve_asset(row['source_path']):
+        if not media_assets.resolve_asset(row['source_path']) and not media_assets.available(row['source_path']):
             if row['kind']=='gif':result['status']='asset_missing'
             continue
         url=f"/api/v1/exercises/{quote(exercise_id,safe='')}/media/{row['kind']}"
@@ -56,7 +56,9 @@ def asset_for_request(conn,exercise_id,kind):
     d=descriptor(conn,exercise_id)
     if not d or not d['animation_url' if kind=='gif' else 'poster_url']:return None
     row=conn.execute(select(db.media).where(db.media.c.exercise_id==exercise_id,db.media.c.kind==kind)).mappings().first()
-    return media_assets.resolve_asset(row['source_path'],verify=True)
+    local=media_assets.resolve_asset(row['source_path'],verify=True)
+    if local is not None:return local
+    return media_assets.fetch_remote(row['source_path'])
 
 def grant_rights(conn,exercise_ids,rights_reference,reviewed_by,expires_at=None,reuse_existing=False):
     if not exercise_ids or not rights_reference.strip() or not reviewed_by.strip():

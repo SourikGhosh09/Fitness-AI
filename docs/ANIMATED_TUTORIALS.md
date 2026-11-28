@@ -32,7 +32,9 @@ Endpoints:
 
 The default media directory is the repository's `data` directory. Docker copies it to `/data` and sets `FITNESS_DATA_DIR=/data`. Set that variable to another absolute data directory if needed. In Compose, the setup job verifies/imports the media before the API starts.
 
-Playback requires a connection to the running backend. Offline set logging and written instructions continue to work; offline animation downloads are not implemented. There is no GitHub hosting dependency for GIF playback.
+When local bytes are absent (as on Vercel, which never receives `data/tutorial-media`), the backend fetches the same file from the pinned source commit's public raw URL - the exact snapshot the in-app source link points to - verifies its size and SHA-256 against the committed manifest, and caches it in the instance's temporary directory. Altered or truncated bytes are rejected, never served. Playback still requires sign-in and an active media grant; the manifest pinning only decides where verified bytes come from.
+
+Playback requires a connection to the running backend. Offline set logging and written instructions continue to work; offline animation downloads are not implemented. Remote fallback fetches from the pinned GitHub source snapshot only when local bytes are missing.
 
 ## Authorization maintenance
 
