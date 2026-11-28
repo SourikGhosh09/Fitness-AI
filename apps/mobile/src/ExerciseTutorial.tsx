@@ -87,12 +87,12 @@ export function ExerciseTutorial({exerciseId, name, autoStart=false}: {exerciseI
   </View>;
 }
 const styles = StyleSheet.create({
-  root:{gap:12,backgroundColor:'#101915',padding:16,borderRadius:16},
-  title:{fontSize:16,fontWeight:'600',color:'#f1f5ee'},
+  root:{gap:12,backgroundColor:'#14171E',padding:16,borderRadius:4,borderWidth:1,borderColor:'#232834'},
+  title:{fontSize:16,fontWeight:'600',color:'#F5F7FA'},
   frame:{alignItems:'center'}, image:{width:180,height:180,backgroundColor:'#ffffff'},
-  message:{color:'#b5c3b9',fontSize:14,lineHeight:21},
-  button:{minHeight:52,padding:14,borderRadius:12,backgroundColor:'#d1f599',alignItems:'center',justifyContent:'center'},
-  buttonText:{color:'#101915',fontSize:15,fontWeight:'700'},
-  source:{minHeight:48,justifyContent:'center'},link:{color:'#d1f599',fontSize:14,textDecorationLine:'underline'},
-  credit:{color:'#b5c3b9',fontSize:12,lineHeight:18},
+  message:{color:'#8B93A3',fontSize:14,lineHeight:21},
+  button:{minHeight:52,padding:14,borderRadius:8,backgroundColor:'#C8F04A',alignItems:'center',justifyContent:'center'},
+  buttonText:{color:'#0A0C10',fontSize:15,fontWeight:'700'},
+  source:{minHeight:48,justifyContent:'center'},link:{color:'#C8F04A',fontSize:14,textDecorationLine:'underline'},
+  credit:{color:'#8B93A3',fontSize:12,lineHeight:18},
 });
