@@ -94,14 +94,34 @@ def test_revocation_blocks_previously_issued_url(exercise):
     with d.begin() as conn:conn.execute(update(db.media_grants).values(revoked=True))
     assert c.get(url,headers=h).status_code==404
 
-def test_missing_asset_not_announced_available(exercise):
+def test_missing_asset_not_announced_available(exercise,monkeypatch):
     c,d,h,path,row=exercise;approve(d)
     (path.parent/'tutorial-media'/row['gif_url']).unlink()
+    monkeypatch.setattr('fitness.media_assets.fetch_remote',lambda source_path:None)
+    response=get(c,h).json();assert response['status']=='available'
+    assert c.get(response['animation_url'],headers=h).status_code==404
+
+def test_unpinned_asset_announced_missing(exercise):
+    c,d,h,path,row=exercise;approve(d)
+    (path.parent/'tutorial-media'/row['gif_url']).unlink()
+    manifest=json.loads((path.parent/'tutorial-media-manifest.json').read_text())
+    del manifest['assets'][row['gif_url']]
+    (path.parent/'tutorial-media-manifest.json').write_text(json.dumps(manifest))
     response=get(c,h).json();assert response['status']=='asset_missing';assert response['animation_url'] is None
 
-def test_tampered_asset_not_served(exercise):
+def test_remote_fallback_serves_verified_bytes(exercise,monkeypatch):
+    c,d,h,path,row=exercise;approve(d)
+    asset=path.parent/'tutorial-media'/row['gif_url'];original=asset.read_bytes();asset.unlink()
+    fetched=path.parent/'fetched.gif';fetched.write_bytes(original)
+    monkeypatch.setattr('fitness.media_assets.fetch_remote',lambda source_path:fetched)
+    response=get(c,h).json();assert response['status']=='available'
+    served=c.get(response['animation_url'],headers=h)
+    assert served.status_code==200 and served.content==original
+
+def test_tampered_asset_not_served(exercise,monkeypatch):
     c,d,h,path,row=exercise;approve(d);asset=path.parent/'tutorial-media'/row['gif_url']
     original=asset.read_bytes();asset.write_bytes(b'X'+original[1:])
+    monkeypatch.setattr('fitness.media_assets.fetch_remote',lambda source_path:None)
     assert c.get('/api/v1/exercises/source:0001/media/gif',headers=h).status_code==404
 
 def test_no_expiry_owner_authorization(exercise):
