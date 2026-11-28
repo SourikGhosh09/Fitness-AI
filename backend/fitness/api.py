@@ -94,7 +94,7 @@ def create_app(database=None):
         try:
             with database.begin() as c:
                 u=db.uid();c.execute(insert(db.users).values(id=u,email=data.email.lower(),password_hash=security.passwords.hash(data.password)))
-                return security.issue(c,u,'Sign-in session',['read','train','coach'],'session',1)
+                return security.issue(c,u,'Sign-in session',['read','train','coach'],'session',30)
         except IntegrityError:raise HTTPException(409,'Account unavailable; sign in or use another email')
     @app.post('/api/v1/auth/login')
     def login(data:Credentials):
@@ -103,7 +103,7 @@ def create_app(database=None):
             try:security.passwords.verify(u['password_hash'] if u else security.DUMMY,data.password)
             except security.VerificationError:raise HTTPException(401,'Invalid credentials')
             if not u:raise HTTPException(401,'Invalid credentials')
-            return security.issue(c,u['id'],'Sign-in session',['read','train','coach'],'session',1)
+            return security.issue(c,u['id'],'Sign-in session',['read','train','coach'],'session',30)
     @app.post('/api/v1/auth/logout',status_code=204)
     def logout(authorization:str|None=Header(default=None)):
         with database.begin() as c:

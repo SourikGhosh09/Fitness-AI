@@ -3,10 +3,13 @@ import {token,cache,cached,pending,acknowledge,markError} from './storage';
 const origin=process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 if(!__DEV__&&!origin.startsWith('https://'))throw new Error('Production requires HTTPS');
 export class ApiError extends Error { constructor(public status:number,message:string){super(message);} }
+// Registered by the app shell: fired on any 401 so an expired session drops to sign-in instead of stranding the user.
+let onUnauthorized:(()=>void)|null=null;
+export function setUnauthorizedHandler(fn:(()=>void)|null){onUnauthorized=fn;}
 export async function api<T=any>(path:string,method='GET',body?:unknown,expectedSession?:string):Promise<T>{
  const t=await token(); const controller=new AbortController(); const timeout=setTimeout(()=>controller.abort(),15000);
  if(expectedSession&&t!==expectedSession){clearTimeout(timeout);throw new ApiError(401,'Your sign-in changed. Reopen this screen before continuing.');}
- try {const r=await fetch(origin+'/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(t?{Authorization:`Bearer ${t}`}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});if(!r.ok){const d=await r.json();throw new ApiError(r.status,typeof d.detail==='string'?d.detail:JSON.stringify(d.detail));}return r.status===204?undefined as T:await r.json();}finally{clearTimeout(timeout);}
+ try {const r=await fetch(origin+'/api/v1'+path,{method,headers:{'Content-Type':'application/json',...(t?{Authorization:`Bearer ${t}`}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:controller.signal});if(!r.ok){const d=await r.json();if(r.status===401&&t&&onUnauthorized)onUnauthorized();throw new ApiError(r.status,typeof d.detail==='string'?d.detail:JSON.stringify(d.detail));}return r.status===204?undefined as T:await r.json();}finally{clearTimeout(timeout);}
 }
 export async function load<T>(path:string):Promise<{data:T;offline:boolean}>{try{const data=await api<T>(path);await cache(path,data);return {data,offline:false};}catch(e){if(e instanceof ApiError)throw e;const data=await cached<T>(path);if(data===null)throw e;return {data,offline:true};}}
 let syncing=false;
