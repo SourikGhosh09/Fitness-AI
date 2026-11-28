@@ -9,7 +9,7 @@ export function LearningSettings(){
  async function change(enabled:boolean){setBusy(true);setError('');try{setState(await api<State>('/learning/consent','PUT',{enabled}));}catch(e){setError(e instanceof Error?e.message:'Your choice was not saved');}finally{setBusy(false);}}
  function toggle(enabled:boolean){if(enabled)void change(true);else Alert.alert('Stop contributing?','Your learning examples will be deleted and models that used them retired. Your workout history stays available.',[{text:'Cancel',style:'cancel'},{text:'Stop contributing',style:'destructive',onPress:()=>void change(false)}]);}
  return <View style={s.card}><Text style={s.heading}>Help improve training</Text><Text style={s.text}>Optionally contribute workout prescriptions, completed sets, experience and readiness ratings to a shared difficulty-prediction model. Names, email, medical notes and chats are excluded from its inputs. Other users cannot see your records.</Text>
- {busy&&<ActivityIndicator accessibilityLabel="Saving or loading learning settings" color="#d1f599"/>}
+ {busy&&<ActivityIndicator accessibilityLabel="Saving or loading learning settings" color="#C8F04A"/>}
  {!!error&&<Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text>}
  {state&&<><View style={s.row}><Text style={s.text}>Contribute my workout data</Text><Switch disabled={busy} accessibilityLabel="Contribute workout data to shared model training" value={state.consent} onValueChange={toggle}/></View>
  <Text style={s.text}>{state.eligible_examples} eligible sets · {state.pending_review} imported sets awaiting review · {state.pending_contributions} guided contributions awaiting review</Text>
@@ -20,4 +20,4 @@ export function LearningSettings(){
  </>}
  <Pressable disabled={busy} accessibilityRole="button" onPress={()=>void refresh()} style={s.button}><Text style={s.link}>Refresh learning status</Text></Pressable></View>;
 }
-const s=StyleSheet.create({card:{backgroundColor:'#1c2a23',borderRadius:24,padding:22,gap:16,borderWidth:1,borderColor:'#35473b'},heading:{fontSize:23,lineHeight:29,color:'#f1f5ee',fontWeight:'600'},text:{color:'#b5c3b9',fontSize:15,lineHeight:23,flexShrink:1},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},button:{minHeight:48,justifyContent:'center'},link:{color:'#d1f599',fontSize:16,fontWeight:'600'},error:{color:'#ffb4a9',fontSize:15,lineHeight:23}});
+const s=StyleSheet.create({card:{backgroundColor:'#14171E',borderRadius:24,padding:22,gap:16,borderWidth:1,borderColor:'#232834'},heading:{fontSize:23,lineHeight:29,color:'#F5F7FA',fontWeight:'600'},text:{color:'#8B93A3',fontSize:15,lineHeight:23,flexShrink:1},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},button:{minHeight:48,justifyContent:'center'},link:{color:'#C8F04A',fontSize:16,fontWeight:'600'},error:{color:'#F05A5A',fontSize:15,lineHeight:23}});

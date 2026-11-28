@@ -13,7 +13,7 @@ export function NotionSettings(){
  const recent=Boolean(state?.last_success_at&&Date.now()/1000-state.last_success_at<900);
  return <View style={s.card}><Text style={s.heading}>Notion collection</Text>
  <Text style={s.text}>Bring your consented Notion survey answers into this app’s contribution queue. Importing data does not train or deploy an AI model.</Text>
- {busy&&<ActivityIndicator accessibilityLabel="Loading or saving Notion settings" color="#d1f599"/>}
+ {busy&&<ActivityIndicator accessibilityLabel="Loading or saving Notion settings" color="#C8F04A"/>}
  {!!error&&<Text accessibilityLiveRegion="polite" style={s.error}>{error}</Text>}
  {state&&<><View style={s.row}><Text style={s.text}>Allow my Notion answers to be imported</Text><Switch accessibilityLabel="Allow Notion answer imports" value={state.enabled} disabled={busy} onValueChange={toggle}/></View>
  <Text accessibilityLiveRegion="polite" style={s.text}>{!state.configured?'Server connection needs setup':!state.enabled?'Imports are off':recent&&state.worker_status==='ok'?'Worker checked Notion recently':state.worker_status==='cleanup_pending'?'Remote removal still pending':state.worker_status==='retrying'?'Worker is retrying; check server connection':'Waiting for a successful worker check'}</Text>
@@ -23,4 +23,4 @@ export function NotionSettings(){
  <Text style={s.text}>This connection imports from Notion. Workouts recorded directly in this app are not sent to Notion. Turning off shared learning also stops these imports.</Text></>}
  <Pressable style={s.button} accessibilityRole="button" disabled={busy} onPress={()=>void refresh()}><Text style={s.link}>Refresh connection status</Text></Pressable></View>;
 }
-const s=StyleSheet.create({card:{backgroundColor:'#1c2a23',borderRadius:24,padding:22,gap:16,borderWidth:1,borderColor:'#35473b'},heading:{fontSize:23,lineHeight:29,color:'#f1f5ee',fontWeight:'600'},text:{color:'#b5c3b9',fontSize:15,lineHeight:23,flexShrink:1},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},button:{minHeight:48,justifyContent:'center'},link:{color:'#d1f599',fontSize:16,fontWeight:'600'},code:{color:'#f1f5ee',fontSize:16,lineHeight:24},error:{color:'#ffb4a9',fontSize:15,lineHeight:23}});
+const s=StyleSheet.create({card:{backgroundColor:'#14171E',borderRadius:24,padding:22,gap:16,borderWidth:1,borderColor:'#232834'},heading:{fontSize:23,lineHeight:29,color:'#F5F7FA',fontWeight:'600'},text:{color:'#8B93A3',fontSize:15,lineHeight:23,flexShrink:1},row:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:12},button:{minHeight:48,justifyContent:'center'},link:{color:'#C8F04A',fontSize:16,fontWeight:'600'},code:{color:'#F5F7FA',fontSize:16,lineHeight:24},error:{color:'#F05A5A',fontSize:15,lineHeight:23}});

@@ -9,11 +9,12 @@ import {executeAction,ExecResult} from './coach-exec';
 import {askCloud,cloudAvailable} from './cloud';
 import {LocalEngine,LocalHandle,LOCAL_MODEL_LABEL} from './LocalEngine';
 
-const c={bg:'#090b0f',card:'#171b23',card2:'#202631',blue:'#4b6fff',text:'#f7f8fb',muted:'#969eae',line:'#2b3240',success:'#6fe0a2',warn:'#f5b94c'};
+import {colors as t} from '../theme';
+const c={bg:t.bg,card:t.surface,card2:t.surface2,blue:t.volt,text:t.text,muted:t.muted,line:t.line,success:t.ready,warn:t.moderate};
 type Msg={id:number;role:'user'|'assistant';content:string;source?:Route|'error';action?:CoachAction|null;actionState?:'pending'|'done'|'dismissed'};
 type Prefs={local:boolean;cloud:boolean};
 const MODEL_MB=1200;
-const SOURCE_LABEL:Record<string,string>={local:'On-device',cloud:'Cloud (free tier)',rules:'Rules engine',safety:'Safety check',error:'Error'};
+const SOURCE_LABEL:Record<string,string>={local:'ON-DEVICE',cloud:'CLOUD',rules:'ENGINE',safety:'SAFETY',error:'ERROR'};
 
 export function CoachChat({profile,workout,week,logged,onResult,setStatus}:{profile:any;workout:any;week:any;logged:Record<string,boolean>;onResult:(r:ExecResult)=>void;setStatus:(s:string)=>void}){
  const [prefs,setPrefs]=useState<Prefs>({local:false,cloud:false});
@@ -99,14 +100,14 @@ export function CoachChat({profile,workout,week,logged,onResult,setStatus}:{prof
     </>:<>
      <Text style={st.m}>{engine.error?`On-device coach error: ${engine.error}`:engine.ready?'On-device coach ready (offline).':`Preparing on-device coach… ${engine.progress.toFixed(0)}%`}</Text>
      {!engine.ready&&!engine.error&&<View style={st.bar}><View style={[st.fill,{width:`${Math.min(100,engine.progress)}%`}]}/></View>}
-     <Pressable accessibilityRole="button" onPress={disableLocal} style={[st.btn,st.sec]}><Text style={st.bt}>Turn off on-device coach</Text></Pressable>
+     <Pressable accessibilityRole="button" onPress={disableLocal} style={[st.btn,st.sec]}><Text style={[st.bt,{color:c.text}]}>Turn off on-device coach</Text></Pressable>
     </>}
    <View style={st.row}><View style={{flex:1}}><Text style={st.t}>Cloud help for heavy questions</Text><Text style={st.m}>{cloudOk?'Sends your question and a short plan summary to a free Google/OpenRouter model. Off by default.':'Not set up on the server yet.'}</Text></View><Switch accessibilityLabel="Cloud help" disabled={!cloudOk} value={prefs.cloud} onValueChange={v=>void savePrefs({...prefs,cloud:v})}/></View>
   </View>
   {msgs.map(m=><View key={m.id} style={[st.bubble,m.role==='user'?st.user:st.coach]}>
    <Text style={st.t}>{m.content||(busy?'…':'')}</Text>
    {m.role==='assistant'&&!!m.source&&<Text style={st.src}>{SOURCE_LABEL[m.source]}</Text>}
-   {m.action&&m.actionState==='pending'&&<View style={st.act}><Text style={st.t}>{describeAction(m.action,items)}</Text><View style={st.row}><Pressable style={[st.btn,{flex:1}]} onPress={()=>void apply(m)}><Text style={st.bt}>Apply</Text></Pressable><Pressable style={[st.btn,st.sec,{flex:1}]} onPress={()=>patch(m.id,x=>({...x,actionState:'dismissed'}))}><Text style={st.bt}>Dismiss</Text></Pressable></View></View>}
+   {m.action&&m.actionState==='pending'&&<View style={st.act}><Text style={st.t}>{describeAction(m.action,items)}</Text><View style={st.row}><Pressable style={[st.btn,{flex:1}]} onPress={()=>void apply(m)}><Text style={st.bt}>Apply</Text></Pressable><Pressable style={[st.btn,st.sec,{flex:1}]} onPress={()=>patch(m.id,x=>({...x,actionState:'dismissed'}))}><Text style={[st.bt,{color:c.text}]}>Dismiss</Text></Pressable></View></View>}
    {m.actionState==='done'&&<Text style={st.src}>Applied</Text>}
    {m.role==='assistant'&&m.source==='local'&&prefs.cloud&&cloudOk&&m===msgs[msgs.length-1]&&!busy&&lastUser&&<Pressable onPress={()=>void send(lastUser,true)}><Text style={st.link}>Ask cloud instead</Text></Pressable>}
   </View>)}
@@ -116,10 +117,10 @@ export function CoachChat({profile,workout,week,logged,onResult,setStatus}:{prof
  </View>;
 }
 const st=StyleSheet.create({
- wrap:{gap:12},card:{backgroundColor:c.card,borderRadius:24,padding:18,gap:12,borderWidth:1,borderColor:c.line},h:{color:c.text,fontSize:22,fontWeight:'800'},t:{color:c.text,fontSize:16,lineHeight:23},m:{color:c.muted,fontSize:14,lineHeight:20},
- btn:{minHeight:48,justifyContent:'center',alignItems:'center',backgroundColor:c.blue,borderRadius:14,padding:12},sec:{backgroundColor:c.card2,borderWidth:1,borderColor:c.line},bt:{color:'#fff',fontWeight:'800',fontSize:15},row:{flexDirection:'row',alignItems:'center',gap:10},
- bar:{height:8,borderRadius:4,backgroundColor:c.card2,overflow:'hidden'},fill:{height:8,backgroundColor:c.blue},
- bubble:{borderRadius:18,padding:14,gap:8,maxWidth:'92%'},user:{alignSelf:'flex-end',backgroundColor:'#263b9f'},coach:{alignSelf:'flex-start',backgroundColor:c.card,borderWidth:1,borderColor:c.line},
- src:{color:c.muted,fontSize:11,fontWeight:'700',letterSpacing:.5},link:{color:c.blue,fontWeight:'700',fontSize:14},act:{gap:10,padding:10,borderRadius:12,backgroundColor:c.bg},
- input:{minHeight:52,maxHeight:140,borderWidth:1,borderColor:c.line,borderRadius:14,padding:13,color:c.text,fontSize:16,backgroundColor:c.bg}
+ wrap:{gap:12},card:{backgroundColor:c.card,borderRadius:20,padding:18,gap:12,borderWidth:1,borderColor:c.line},h:{color:c.text,fontSize:20,fontWeight:'900'},t:{color:c.text,fontSize:16,lineHeight:23},m:{color:c.muted,fontSize:14,lineHeight:20},
+ btn:{minHeight:48,justifyContent:'center',alignItems:'center',backgroundColor:c.blue,borderRadius:8,padding:12},sec:{backgroundColor:'transparent',borderWidth:1,borderColor:c.line},bt:{color:t.onVolt,fontWeight:'900',fontSize:13,letterSpacing:1.2,textTransform:'uppercase'},row:{flexDirection:'row',alignItems:'center',gap:10},
+ bar:{height:6,borderRadius:3,backgroundColor:c.card2,overflow:'hidden'},fill:{height:6,backgroundColor:c.blue},
+ bubble:{borderRadius:4,padding:14,gap:8,maxWidth:'92%'},user:{alignSelf:'flex-end',backgroundColor:t.indigoBubble,borderRadius:16},coach:{alignSelf:'flex-start',backgroundColor:'transparent',borderWidth:0,borderTopWidth:1,borderTopColor:c.line},
+ src:{color:c.blue,fontSize:9,fontWeight:'900',letterSpacing:1.6},link:{color:c.blue,fontWeight:'700',fontSize:14},act:{gap:10,padding:12,borderRadius:4,backgroundColor:t.well,borderWidth:1,borderColor:c.line},
+ input:{minHeight:52,maxHeight:140,borderWidth:1,borderColor:c.line,borderRadius:8,padding:13,color:c.text,fontSize:16,backgroundColor:t.well}
 });

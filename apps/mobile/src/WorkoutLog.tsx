@@ -5,14 +5,15 @@ import * as store from './storage';
 import {ExerciseTutorial} from './ExerciseTutorial';
 import {LogCheck,LogExercise,LogSession,LogSet,LogSummary,dayLabel,elapsedSeconds,emptySession,formatClock,isIsoDate,localDate,newExercise,newSet,numText,parseNum,remaining,sessionText,setDone,shiftDate,stats,toPayload,weekDates} from './workout-log';
 
-const c={bg:'#090b0f',card:'#171b23',card2:'#202631',blue:'#4b6fff',text:'#f7f8fb',muted:'#969eae',line:'#2b3240',ok:'#6fe0a2',warn:'#fbbf24'};
+import {colors as t} from './theme';
+const c={bg:t.bg,card:t.surface,card2:t.surface2,blue:t.volt,text:t.text,muted:t.muted,line:t.line,ok:t.ready,warn:t.moderate};
 type Timer={kind:'rest'|'set';endsAt:number;total:number;label:string;ei:number;si:number};
 type Previous=Record<string,{date:string;sets:{kind:string;weight_kg:number|null;reps:number|null}[]}>;
 type Loaded=LogSession&{previous?:Previous};
 const now=()=>Date.now()/1000;
 
 function Btn({label,onPress,kind='ghost',disabled=false}:{label:string;onPress:()=>void;kind?:'primary'|'ghost'|'danger';disabled?:boolean}){
- return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[s.btn,kind==='primary'&&s.btnPrimary,kind==='danger'&&s.btnDanger,disabled&&{opacity:.5}]}><Text style={[s.btnText,kind==='primary'&&{color:'#07120b'}]}>{label}</Text></Pressable>;
+ return <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[s.btn,kind==='primary'&&s.btnPrimary,kind==='danger'&&s.btnDanger,disabled&&{opacity:.5}]}><Text style={[s.btnText,kind==='primary'&&{color:t.onVolt}]}>{label}</Text></Pressable>;
 }
 function Num({label,value,onChange,max=1000,width}:{label:string;value:number|null;onChange:(v:number|null)=>void;max?:number;width?:number}){
  const [text,setText]=useState(numText(value));
@@ -133,7 +134,7 @@ export function WorkoutLog({setStatus}:{setStatus:(m:string)=>void}){
    <Btn label="‹ Week" onPress={()=>setDate(shiftDate(date,-7))}/><Text style={s.heading}>{days[0]} → {days[6]}</Text><Btn label="Week ›" onPress={()=>setDate(shiftDate(date,7))}/>
   </View>
   <View style={s.dayRow}>{days.map(d=>{const w=week[d];return <Pressable key={d} accessibilityRole="button" accessibilityLabel={`${dayLabel(d)}${w?`, ${w.status}`:', no log'}`} accessibilityState={{selected:d===date}} onPress={()=>setDate(d)} style={[s.day,d===date&&s.daySel,d===today&&{borderColor:c.blue}]}>
-   <Text style={[s.dayText,d===date&&{color:'#07120b'}]}>{dayLabel(d)}</Text><Text style={[s.dayDot,{color:w?.status==='completed'?c.ok:w?c.warn:c.muted},d===date&&{color:'#07120b'}]}>{w?(w.status==='completed'?'●':'◐'):'○'}</Text></Pressable>;})}</View>
+   <Text style={[s.dayText,d===date&&{color:t.onVolt}]}>{dayLabel(d)}</Text><Text style={[s.dayDot,{color:w?.status==='completed'?c.ok:w?c.warn:c.muted},d===date&&{color:t.onVolt}]}>{w?(w.status==='completed'?'■':'◧'):'□'}</Text></Pressable>;})}</View>
   <View style={{flexDirection:'row',gap:8,alignItems:'flex-end'}}><View style={{flex:1}}><Txt label="Jump to date (YYYY-MM-DD)" value={jump} onChange={setJump}/></View><Btn label="Go" onPress={()=>{if(isIsoDate(jump)){setDate(jump);setJump('');}else setStatus('Enter a real date like 2026-10-26.');}}/><Btn label="Today" onPress={()=>setDate(today)}/></View>
   {loading&&<Text style={s.muted}>Loading {date}…</Text>}
   {!loading&&!log&&<View style={s.card}><Text style={s.heading}>{dayLabel(date)} · no log yet</Text><Text style={s.muted}>Start from today's generated plan or build a session yourself.</Text><Btn kind="primary" label="Start from planned session" onPress={()=>void create(true)}/><Btn label="Start a blank log" onPress={()=>void create(false)}/></View>}
@@ -156,7 +157,7 @@ export function WorkoutLog({setStatus}:{setStatus:(m:string)=>void}){
     <Text style={s.muted}>Stop if you feel sharp or worsening pain. Logged values are your own record and do not change your adaptive plan.</Text></View>
    <Checklist title="Warm-up" items={log.warmup} onChange={v=>edit(l=>({...l,warmup:v}))}/>
    {log.exercises.map((ex,ei)=>{const prev=ex.exercise_id?log.previous?.[ex.exercise_id]:undefined;return <View key={ei} style={s.card}>
-    <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><View style={{flex:1}}><Text style={s.heading}>{ei+1}. {ex.name}</Text>{!!ex.target&&<Text style={{color:'#93c5fd',fontSize:13}}>Target: {ex.target}</Text>}{!!prev&&<Text style={s.muted}>Last ({prev.date}): {prev.sets.map(x=>x.kind==='seconds'?`${x.reps??'-'}s`:`${x.weight_kg??'-'}×${x.reps??'-'}`).join(' · ')}</Text>}</View>
+    <View style={{flexDirection:'row',justifyContent:'space-between',gap:8}}><View style={{flex:1}}><Text style={s.heading}>{ei+1}. {ex.name}</Text>{!!ex.target&&<Text style={{color:c.blue,fontSize:12,fontWeight:'800',letterSpacing:1}}>TARGET · {ex.target}</Text>}{!!prev&&<Text style={s.muted}>Last ({prev.date}): {prev.sets.map(x=>x.kind==='seconds'?`${x.reps??'-'}s`:`${x.weight_kg??'-'}×${x.reps??'-'}`).join(' · ')}</Text>}</View>
      <Btn label="Remove" kind="danger" onPress={()=>edit(l=>({...l,exercises:l.exercises.filter((_,i)=>i!==ei)}))}/></View>
     {ex.exercise_id?<><Btn label={openTut[ei]?`Hide tutorial for ${ex.name}`:`Show tutorial for ${ex.name}`} onPress={()=>setOpenTut(o=>({...o,[ei]:!o[ei]}))}/>{openTut[ei]&&<ExerciseTutorial exerciseId={ex.exercise_id} name={ex.name} autoStart/>}</>:<Text style={s.muted}>Custom exercise · no tutorial. Add it from the catalog to see its animation.</Text>}
     <View style={s.row}><Num label="Rest between sets (s)" value={ex.rest_seconds} max={900} onChange={v=>patchEx(ei,{rest_seconds:Math.round(v??0)})}/><View style={{flex:1}}><Text style={s.label}>Set type</Text><Btn label={ex.sets[0]?.kind==='seconds'?'Timed (sec)':'Reps'} onPress={()=>edit(l=>({...l,exercises:l.exercises.map((e,i)=>i!==ei?e:{...e,sets:e.sets.map(x=>({...x,kind:x.kind==='seconds'?'reps':'seconds'}))})}))}/></View></View>
@@ -166,7 +167,7 @@ export function WorkoutLog({setStatus}:{setStatus:(m:string)=>void}){
      <View style={{flex:1}}><SetNum label={`Set ${si+1} weight`} value={x.weight_kg} max={1000} onChange={v=>patchSet(ei,si,{weight_kg:v})}/></View>
      <View style={{flex:1}}><SetNum label={`Set ${si+1} ${x.kind==='seconds'?'seconds':'reps'}`} value={x.reps} max={3600} onChange={v=>patchSet(ei,si,{reps:v===null?null:Math.round(v)})}/></View>
      <View style={{width:48}}><SetNum label={`Set ${si+1} reps in reserve`} value={x.rir} max={10} onChange={v=>patchSet(ei,si,{rir:v===null?null:Math.round(v)})}/></View>
-     <View style={{width:84,flexDirection:'row',gap:4}}>{x.kind==='seconds'&&!x.done&&<Pressable accessibilityRole="button" accessibilityLabel={`Start timer for set ${si+1}`} onPress={()=>startSetTimer(ei,si)} style={s.mini}><Text style={s.text}>⏱</Text></Pressable>}<Pressable accessibilityRole="checkbox" accessibilityState={{checked:x.done}} accessibilityLabel={`Set ${si+1} done`} onPress={()=>tickSet(ei,si,!x.done)} style={[s.mini,x.done&&{backgroundColor:c.ok}]}><Text style={[s.text,x.done&&{color:'#07120b'}]}>{x.done?'✓':'○'}</Text></Pressable></View>
+     <View style={{width:84,flexDirection:'row',gap:4}}>{x.kind==='seconds'&&!x.done&&<Pressable accessibilityRole="button" accessibilityLabel={`Start timer for set ${si+1}`} onPress={()=>startSetTimer(ei,si)} style={s.mini}><Text style={s.text}>⏱</Text></Pressable>}<Pressable accessibilityRole="checkbox" accessibilityState={{checked:x.done}} accessibilityLabel={`Set ${si+1} done`} onPress={()=>tickSet(ei,si,!x.done)} style={[s.mini,x.done&&{backgroundColor:c.blue}]}><Text style={[s.text,x.done&&{color:t.onVolt}]}>{x.done?'✓':'○'}</Text></Pressable></View>
     </View>)}
     <View style={{flexDirection:'row',gap:8}}><Btn label="+ Set" onPress={()=>{if(ex.sets.length<30)patchEx(ei,{sets:[...ex.sets,newSet(ex.sets[ex.sets.length-1])]});}}/><Btn label="− Set" disabled={ex.sets.length<=1||!!ex.sets[ex.sets.length-1]?.done} onPress={()=>patchEx(ei,{sets:ex.sets.slice(0,-1)})}/></View>
     <Txt label="Exercise notes" value={ex.notes} onChange={v=>patchEx(ei,{notes:v.slice(0,500)})}/>
@@ -195,11 +196,11 @@ function SetNum({label,value,onChange,max}:{label:string;value:number|null;onCha
  return <TextInput accessibilityLabel={label} keyboardType="decimal-pad" value={text} onChangeText={t=>{setText(t);onChange(parseNum(t,0,max));}} style={[s.input,{textAlign:'center',paddingHorizontal:4,minHeight:46}]}/>;
 }
 const s=StyleSheet.create({
- card:{backgroundColor:c.card,borderRadius:20,padding:16,gap:12,borderWidth:1,borderColor:c.line},heading:{color:c.text,fontSize:17,fontWeight:'800'},text:{color:c.text,fontSize:15},muted:{color:c.muted,fontSize:13,lineHeight:19},label:{color:c.muted,fontSize:11,fontWeight:'700',letterSpacing:.4,marginBottom:4},
- input:{minHeight:48,borderWidth:1,borderColor:c.line,borderRadius:12,padding:10,color:c.text,fontSize:16,backgroundColor:'#0c1426'},row:{flexDirection:'row',gap:8},
- btn:{minHeight:44,paddingHorizontal:14,borderRadius:12,borderWidth:1,borderColor:c.line,backgroundColor:c.card2,justifyContent:'center',alignItems:'center'},btnPrimary:{backgroundColor:c.ok,borderColor:c.ok},btnDanger:{borderColor:'#7f1d1d'},btnText:{color:c.text,fontWeight:'700',fontSize:14},
- weekHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:8},dayRow:{flexDirection:'row',gap:6},day:{flex:1,minHeight:56,borderRadius:12,borderWidth:1,borderColor:c.line,backgroundColor:c.card,alignItems:'center',justifyContent:'center'},daySel:{backgroundColor:c.ok,borderColor:c.ok},dayText:{color:c.text,fontSize:11,fontWeight:'700'},dayDot:{fontSize:14},
+ card:{backgroundColor:c.card,borderRadius:16,padding:16,gap:12,borderWidth:1,borderColor:c.line},heading:{color:c.text,fontSize:17,fontWeight:'800'},text:{color:c.text,fontSize:15},muted:{color:c.muted,fontSize:13,lineHeight:19},label:{color:c.muted,fontSize:11,fontWeight:'700',letterSpacing:.4,marginBottom:4},
+ input:{minHeight:48,borderWidth:1,borderColor:c.line,borderRadius:4,padding:10,color:c.text,fontSize:16,backgroundColor:t.well},row:{flexDirection:'row',gap:8},
+ btn:{minHeight:44,paddingHorizontal:14,borderRadius:8,borderWidth:1,borderColor:c.line,backgroundColor:c.card2,justifyContent:'center',alignItems:'center'},btnPrimary:{backgroundColor:c.blue,borderColor:c.blue},btnDanger:{borderColor:'#7f1d1d'},btnText:{color:c.text,fontWeight:'800',fontSize:13,letterSpacing:.8,textTransform:'uppercase'},
+ weekHead:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:8},dayRow:{flexDirection:'row',gap:6},day:{flex:1,minHeight:56,borderRadius:12,borderWidth:1,borderColor:c.line,backgroundColor:c.card,alignItems:'center',justifyContent:'center'},daySel:{backgroundColor:c.blue,borderColor:c.blue},dayText:{color:c.text,fontSize:11,fontWeight:'700'},dayDot:{fontSize:14},
  timer:{backgroundColor:c.card2,borderRadius:20,padding:16,gap:8,borderWidth:2},big:{color:c.text,fontSize:40,fontWeight:'900',fontVariant:['tabular-nums']},pill:{color:c.warn,fontSize:12,fontWeight:'800',letterSpacing:1},
- check:{flexDirection:'row',alignItems:'center',gap:10,minHeight:44,backgroundColor:'#10192b',borderRadius:10,paddingHorizontal:10},checkBox:{color:c.muted,fontSize:20},
- setHead:{flexDirection:'row',gap:6,alignItems:'center'},setRow:{flexDirection:'row',gap:6,alignItems:'center'},mini:{width:38,height:46,borderRadius:10,borderWidth:1,borderColor:c.line,alignItems:'center',justifyContent:'center',backgroundColor:c.card2},result:{minHeight:44,justifyContent:'center',paddingHorizontal:10,backgroundColor:'#10192b',borderRadius:10}
+ check:{flexDirection:'row',alignItems:'center',gap:10,minHeight:44,backgroundColor:t.well,borderRadius:4,paddingHorizontal:10},checkBox:{color:c.muted,fontSize:20},
+ setHead:{flexDirection:'row',gap:6,alignItems:'center'},setRow:{flexDirection:'row',gap:6,alignItems:'center'},mini:{width:38,height:46,borderRadius:4,borderWidth:1,borderColor:c.line,alignItems:'center',justifyContent:'center',backgroundColor:c.card2},result:{minHeight:44,justifyContent:'center',paddingHorizontal:10,backgroundColor:t.well,borderRadius:4}
 });
